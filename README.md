@@ -1,6 +1,10 @@
 # Collective Inner Compass
 Assessment tool for https://www.theblindspot.space/
 
+The **main branch** of this repo is automatically deployed to https://cic.roemers.io
+
+[![Netlify Status](https://api.netlify.com/api/v1/badges/c34b751b-a14c-45fb-8be4-d3cd4c64830b/deploy-status)](https://app.netlify.com/sites/collective-inner-compass/deploys)
+
 # Welcome to Remix!
 
 - [Remix Docs](https://remix.run/docs)
