@@ -1,3 +1,5 @@
+import type { LoaderFunction } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import {
   Chart as ChartJS,
   RadialLinearScale,
@@ -5,45 +7,26 @@ import {
   LineElement,
 } from "chart.js";
 import { Radar } from "react-chartjs-2";
+import base64ToObject from "~/utils/base64ToObject.server";
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement);
 
+export const loader: LoaderFunction = ({ request }) => {
+  const url = new URL(request.url);
+  const data = url.searchParams.get("data");
+  if (data === null) {
+    throw new Error("no data provided");
+  }
+
+  const json = base64ToObject(data);
+
+  console.log("json", json);
+
+  return json;
+};
+
 export default () => {
-  const data = {
-    labels: [
-      "Eating",
-      "Drinking",
-      "Sleeping",
-      "Designing",
-      "Coding",
-      "Cycling",
-      "Running",
-    ],
-    datasets: [
-      {
-        label: "My First Dataset",
-        data: [65, 90, 90, 81, 56, 55, 40],
-        fill: true,
-        backgroundColor: "rgba(255, 99, 132, 0.2)",
-        borderColor: "rgb(255, 99, 132)",
-        pointBackgroundColor: "rgb(255, 99, 132)",
-        pointBorderColor: "#fff",
-        pointHoverBackgroundColor: "#fff",
-        pointHoverBorderColor: "rgb(255, 99, 132)",
-      },
-      {
-        label: "My Second Dataset",
-        data: [28, 48, 40, 19, 96, 27, 100],
-        fill: true,
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
-        borderColor: "rgb(54, 162, 235)",
-        pointBackgroundColor: "rgb(54, 162, 235)",
-        pointBorderColor: "#fff",
-        pointHoverBackgroundColor: "#fff",
-        pointHoverBorderColor: "rgb(54, 162, 235)",
-      },
-    ],
-  };
+  const data = useLoaderData();
 
   return (
     <div>

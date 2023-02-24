@@ -1,30 +1,63 @@
+import type { LoaderFunction } from "@remix-run/node";
+import { Link, useLoaderData } from "@remix-run/react";
+import objectToBase64 from "../utils/objectToBase64.server";
+
+export const loader: LoaderFunction = ({ request }) => {
+  return {
+    demoDataBase64: objectToBase64({
+      labels: [
+        "Eating",
+        "Drinking",
+        "Sleeping",
+        "Designing",
+        "Coding",
+        "Cycling",
+        "Running",
+      ],
+      datasets: [
+        {
+          label: "My First Dataset",
+          data: [65, 59, 90, 81, 56, 55, 40],
+          fill: true,
+          backgroundColor: "rgba(255, 99, 132, 0.2)",
+          borderColor: "rgb(255, 99, 132)",
+          pointBackgroundColor: "rgb(255, 99, 132)",
+          pointBorderColor: "#fff",
+          pointHoverBackgroundColor: "#fff",
+          pointHoverBorderColor: "rgb(255, 99, 132)",
+        },
+        {
+          label: "My Second Dataset",
+          data: [28, 48, 40, 19, 96, 27, 100],
+          fill: true,
+          backgroundColor: "rgba(54, 162, 235, 0.2)",
+          borderColor: "rgb(54, 162, 235)",
+          pointBackgroundColor: "rgb(54, 162, 235)",
+          pointBorderColor: "#fff",
+          pointHoverBackgroundColor: "#fff",
+          pointHoverBorderColor: "rgb(54, 162, 235)",
+        },
+      ],
+    }),
+  };
+};
+
 export default function Index() {
+  const { demoDataBase64 } = useLoaderData();
+
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.4" }}>
-      <h1>Welcome to Remix</h1>
+    <div>
       <ul>
         <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/blog"
-            rel="noreferrer"
+          <Link
+            to={`chart?data=${demoDataBase64}`}
+            className="hover:underline block"
           >
-            15m Quickstart Blog Tutorial
-          </a>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/jokes"
-            rel="noreferrer"
-          >
-            Deep Dive Jokes App Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
+            Demo Radar View
+          </Link>
+          <Link to="form" className="hover:underline block">
+            Example Form
+          </Link>
         </li>
       </ul>
     </div>
