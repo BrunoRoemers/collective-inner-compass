@@ -1,15 +1,19 @@
 import type { ActionFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { Form } from "@remix-run/react";
+import { Form, useActionData } from "@remix-run/react";
+import FormRow from "~/components/FormRow";
 import objectToBase64 from "~/utils/objectToBase64.server";
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
 
   // TODO repeating too much code...
-  const openness = Number(formData.get("openness"));
-  const passion = Number(formData.get("passion"));
-  const collaboration = Number(formData.get("collaboration"));
+  const openness = parseInt(String(formData.get("openness")), 10);
+  const passion = parseInt(String(formData.get("passion")), 10);
+  const collaboration = parseInt(String(formData.get("collaboration")), 10);
+
+  console.log(openness, passion, collaboration);
 
   const errors = {
     openness:
@@ -27,11 +31,9 @@ export const action: ActionFunction = async ({ request }) => {
   };
 
   const hasErrors = Object.values(errors).some((v) => v);
-
-  // TODO: show errors in UI
-
-  console.log("errs:", errors);
-  console.log("has errs?", hasErrors);
+  if (hasErrors) {
+    return json(errors);
+  }
 
   const data = {
     labels: ["Openness", "Passion", "Collaboration"],
@@ -54,31 +56,29 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default () => {
+  const errors = useActionData();
+
   return (
-    <div>
+    <div className="p-2">
       <Form method="post">
-        <label>
-          <span>Rate alignment on value "openness"</span>
-          <input
-            type="number"
-            name="openness"
-            id="openness"
-            className="block"
-          />
-        </label>
-        <label>
-          <span>Rate alignment on value "passion"</span>
-          <input type="number" name="passion" id="passion" className="block" />
-        </label>
-        <label>
-          <span>Rate alignment on value "collaboration"</span>
-          <input
-            type="number"
-            name="collaboration"
-            id="collaboration"
-            className="block"
-          />
-        </label>
+        <FormRow
+          label={`Rate alignment on value "openness"`}
+          errorMessages={[errors?.openness]}
+        >
+          <input type="number" name="openness" className="block w-full" />
+        </FormRow>
+        <FormRow
+          label={`Rate alignment on value "passion"`}
+          errorMessages={[errors?.passion]}
+        >
+          <input type="number" name="passion" className="block w-full" />
+        </FormRow>
+        <FormRow
+          label={`Rate alignment on value "collaboration"`}
+          errorMessages={[errors?.collaboration]}
+        >
+          <input type="number" name="collaboration" className="block w-full" />
+        </FormRow>
         <button type="submit" name="submit" className="hover:underline">
           Submit
         </button>

@@ -20,8 +20,6 @@ export const loader: LoaderFunction = ({ request }) => {
 
   const json = base64ToObject(data);
 
-  console.log("json", json);
-
   return json;
 };
 
