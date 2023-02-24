@@ -12,8 +12,10 @@
     "@remix-run/netlify": "^1.13.0",
     "@remix-run/node": "^1.13.0",
     "@remix-run/react": "^1.13.0",
+    "chart.js": "^4.2.1",
     "cross-env": "^7.0.3",
     "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
