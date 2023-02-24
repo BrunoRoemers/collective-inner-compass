@@ -7,6 +7,8 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import type { LinksFunction } from "@remix-run/react/dist/routeModules";
+import styles from "./tailwind.css";
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -30,3 +32,5 @@ export default function App() {
     </html>
   );
 }
+
+export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
