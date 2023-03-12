@@ -58,6 +58,9 @@ export default function Index() {
           <Link to="form" className="hover:underline block">
             Example Form
           </Link>
+          <Link to="questionnaires" className="hover:underline block">
+            Questionnaires
+          </Link>
         </li>
       </ul>
     </div>
