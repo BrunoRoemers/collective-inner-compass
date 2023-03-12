@@ -3,7 +3,6 @@
 // - https://github.com/netlify/build/blob/main/packages/run-utils/README.md
 
 export const onBuild = async function ({ utils: { build, run } }) {
-  console.log("before prisma deploy");
+  // TODO error handling?
   await run.command(`npx prisma migrate deploy`);
-  console.log("after prisma deploy");
 };
