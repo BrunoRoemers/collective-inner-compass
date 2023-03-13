@@ -5,7 +5,13 @@
     "build": "remix build",
     "dev": "remix dev",
     "start": "cross-env NODE_ENV=production netlify dev",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "db:studio": "./prisma/studio.sh",
+    "migrate:reset": "prisma migrate reset",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@netlify/functions": "^1.3.0",
