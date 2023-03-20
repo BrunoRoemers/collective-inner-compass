@@ -1,12 +1,19 @@
-import type { ActionFunction } from "@remix-run/node";
+import { z } from "zod";
+import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { Form, useActionData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import FormRow from "~/components/FormRow";
 import objectToBase64 from "~/utils/objectToBase64.server";
 
-export const action: ActionFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ params }) => {
+  return json({ uuid: z.string().uuid().parse(params.uuid) });
+};
+
+export const action: ActionFunction = async ({ params, request }) => {
   const formData = await request.formData();
+
+  // TODO use ZOD: https://www.npmjs.com/package/zod
 
   // TODO repeating too much code...
   const openness = parseInt(String(formData.get("openness")), 10);
@@ -56,10 +63,12 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default () => {
-  const errors = useActionData();
+  const { uuid } = useLoaderData<typeof loader>();
+  const errors = useActionData<typeof action>();
 
   return (
     <div className="p-2">
+      <span>questionnaire uuid: {uuid}</span>
       <Form method="post">
         <FormRow
           label={`Rate alignment on value "openness"`}

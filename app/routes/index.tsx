@@ -55,9 +55,6 @@ export default function Index() {
           >
             Demo Radar View
           </Link>
-          <Link to="form" className="hover:underline block">
-            Example Form
-          </Link>
           <Link to="questionnaires" className="hover:underline block">
             Questionnaires
           </Link>
