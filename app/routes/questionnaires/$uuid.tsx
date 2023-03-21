@@ -1,16 +1,31 @@
 import { z } from "zod";
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import { db } from "~/utils/db.server";
+import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import FormRow from "~/components/FormRow";
 import objectToBase64 from "~/utils/objectToBase64.server";
+import Field from "~/components/Field";
 
-export const loader: LoaderFunction = async ({ params }) => {
-  return json({ uuid: z.string().uuid().parse(params.uuid) });
+export const loader = async ({ params }: DataFunctionArgs) => {
+  const uuid = z.string().uuid().parse(params.uuid);
+
+  const fields = await db.field.findMany({
+    where: { questionnaireId: uuid },
+    select: {
+      id: true,
+      type: true,
+      params: true,
+    },
+  });
+
+  return json({
+    uuid,
+    fields,
+  });
 };
 
-export const action: ActionFunction = async ({ params, request }) => {
+export const action = async ({ params, request }: DataFunctionArgs) => {
   const formData = await request.formData();
 
   // TODO use ZOD: https://www.npmjs.com/package/zod
@@ -63,31 +78,22 @@ export const action: ActionFunction = async ({ params, request }) => {
 };
 
 export default () => {
-  const { uuid } = useLoaderData<typeof loader>();
+  const { uuid, fields } = useLoaderData<typeof loader>();
   const errors = useActionData<typeof action>();
+  // TODO render errors
+
+  if (fields.length < 1) {
+    throw new Error(`questionnaire '${uuid}' does not have any fields`);
+  }
+
+  const formRows = fields.map((field) => (
+    <Field key={field.id} field={field} />
+  ));
 
   return (
     <div className="p-2">
-      <span>questionnaire uuid: {uuid}</span>
       <Form method="post">
-        <FormRow
-          label={`Rate alignment on value "openness"`}
-          errorMessages={[errors?.openness]}
-        >
-          <input type="number" name="openness" className="block w-full" />
-        </FormRow>
-        <FormRow
-          label={`Rate alignment on value "passion"`}
-          errorMessages={[errors?.passion]}
-        >
-          <input type="number" name="passion" className="block w-full" />
-        </FormRow>
-        <FormRow
-          label={`Rate alignment on value "collaboration"`}
-          errorMessages={[errors?.collaboration]}
-        >
-          <input type="number" name="collaboration" className="block w-full" />
-        </FormRow>
+        {formRows}
         <button type="submit" name="submit" className="hover:underline">
           Submit
         </button>

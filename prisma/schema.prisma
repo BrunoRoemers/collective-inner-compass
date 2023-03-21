@@ -6,13 +6,30 @@ generator client {
 }
 
 datasource db {
+  // NOTE: using SQLite for development and e.g. cockroachdb for production is
+  //       not officially supported, see: https://github.com/prisma/prisma/issues/3834
   provider = "cockroachdb"
   url      = env("DATABASE_URL")
 }
 
 model Questionnaire {
-  id         String   @id @db.Uuid @default(uuid())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  name       String
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  fields    Field[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Field {
+  id              String        @id @default(uuid()) @db.Uuid
+  questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id])
+  questionnaireId String        @db.Uuid
+  type            FieldType
+  params          Json
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+enum FieldType {
+  NUMBER
 }
