@@ -1,0 +1,6 @@
+{
+  "[prisma]": {
+    // the prisma formatter currently does not support formatting modifications-only on save, see: https://github.com/prisma/language-tools/issues/1244
+    "editor.formatOnSaveMode": "file"
+  }
+}
