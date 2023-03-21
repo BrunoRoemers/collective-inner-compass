@@ -5,65 +5,23 @@ The **main branch** of this repo is automatically deployed to https://cic.roemer
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/c34b751b-a14c-45fb-8be4-d3cd4c64830b/deploy-status)](https://app.netlify.com/sites/collective-inner-compass/deploys)
 
-# Welcome to Remix!
+# Development
 
-- [Remix Docs](https://remix.run/docs)
-- [Netlify Functions](https://www.netlify.com/products/functions/)
+## General
+1. install dependencies
+   - `npm install`
+   - `brew install cockroachdb/tap/cockroach`
+1. make a copy of `.env.example` and name it `.env`
+1. `npm run dev` starts Remix in dev mode, starts a local (insecure) instance of Cockroach DB and launches Prisma Studio
+   - `npm run dev:remix` starts Remix in dev mode (http://localhost:3000)
+   - `npm run dev:studio` launches Prisma Studio (http://localhost:8080)
+   - `npm run dev:db` starts a local (insecure) instance of Cockroach DB (http://localhost:5555)
 
-## Netlify Setup
-
-1. Install the [Netlify CLI](https://www.netlify.com/products/dev/):
-
-```sh
-npm i -g netlify-cli
-```
-
-If you have previously installed the Netlify CLI, you should update it to the latest version:
-
-```sh
-npm i -g netlify-cli@latest
-```
-
-2. Sign up and log in to Netlify:
-
-```sh
-netlify login
-```
-
-3. Create a new site:
-
-```sh
-netlify init
-```
-
-## Development
-
-The Remix dev server starts your app in development mode, rebuilding assets on file changes. To start the Remix dev server:
-
-```sh
-npm run dev
-```
-
-Open up [http://localhost:3000](http://localhost:3000), and you should be ready to go!
-
-The Netlify CLI builds a production version of your Remix App Server and splits it into Netlify Functions that run locally. This includes any custom Netlify functions you've developed. The Netlify CLI runs all of this in its development mode.
-
-```sh
-netlify dev
-```
-
-Open up [http://localhost:3000](http://localhost:3000), and you should be ready to go!
-
-Note: When running the Netlify CLI, file changes will rebuild assets, but you will not see the changes to the page you are on unless you do a browser refresh of the page. Due to how the Netlify CLI builds the Remix App Server, it does not support hot module reloading.
-
-## Deployment
-
-There are two ways to deploy your app to Netlify, you can either link your app to your git repo and have it auto deploy changes to Netlify, or you can deploy your app manually. If you've followed the setup instructions already, all you need to do is run this:
-
-```sh
-# preview deployment
-netlify deploy --build
-
-# production deployment
-netlify deploy --build --prod
-```
+## Prisma
+- `npx prisma db push` to test out schema changes (does NOT create migration files)
+- `npx prisma db seed` to run the seed script on the existing state of the database
+- `npx prisma migrate dev` to commit to new schema (creates migration files needed for deployment in production)
+- `npx prisma migrate reset` to revert to the state of the latest migration (ie. undo manual changes and/or `prisma db push` experiments)
+- `npx prisma migrate deploy` to deploy in production (automatically triggered by a [Netlify plugin](netlify/plugins/deploy-to-cockroach-db/index.js))
+- `npx prisma studio` to view/edit the database (configured in `.env`)
+  - `npm run db:studio`: wrapper to help launch a Prisma Studio instance for a remote database
