@@ -18,15 +18,12 @@ export const getNumberInputParser = (params: NumberParams) =>
 interface Props {
   id: string;
   params: NumberParams;
-  errors?: { code: string; message: string }[];
+  errors?: string[];
 }
 
 const NumberField = ({ id, params, errors }: Props) => {
   return (
-    <FormRow
-      label={params.label}
-      errorMessages={errors?.map((error) => error.message)}
-    >
+    <FormRow label={params.label} errorMessages={errors}>
       <input type="number" name={id} className="block w-full" />
     </FormRow>
   );

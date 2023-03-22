@@ -31,46 +31,48 @@ export const loader = async ({ params }: DataFunctionArgs) => {
 };
 
 export const action = async ({ params, request }: DataFunctionArgs) => {
+  // inputs
   const uuid = z.string().uuid().parse(params.uuid);
   const fields = await getFieldsOfQuestionnaire(uuid);
   const formData = await request.formData();
 
-  // TODO this can potentially be simplified if I construct a composite zod object
-  // TODO e.g. https://github.com/colinhacks/zod/blob/master/ERROR_HANDLING.md#error-handling-for-forms
-  const parserResults = fields.map(
-    (
-      field
-    ): [string, z.SafeParseSuccess<unknown> | z.SafeParseError<unknown>] => {
-      const submittedValue = formData.get(field.id);
-
-      switch (field.type) {
-        case "NUMBER":
-          const numberParams = numberParamsParser.parse(field.params);
-          return [
-            field.id,
-            getNumberInputParser(numberParams).safeParse(submittedValue),
-          ];
-        default:
-          throw new Error(
-            `type '${field.type}' of field '${field.id}' is not supported`
-          );
-      }
-    }
+  // build parser
+  const parser = z.object(
+    Object.fromEntries(
+      fields.map((field) => {
+        switch (field.type) {
+          case "NUMBER":
+            const numberParams = numberParamsParser.parse(field.params);
+            return [field.id, getNumberInputParser(numberParams)];
+          default:
+            throw new Error(
+              `type '${field.type}' of field '${field.id}' is not supported`
+            );
+        }
+      })
+    )
   );
 
-  const errors = parserResults.filter(
-    ([id, result]) => result.success === false
-  ) as [string, z.SafeParseError<unknown>][];
+  // build data structure
+  const data = Object.fromEntries(
+    fields.map((field): [string, FormDataEntryValue | null] => {
+      return [field.id, formData.get(field.id)];
+    })
+  );
 
-  if (errors.length > 0) {
-    const issues = Object.fromEntries(
-      errors.map(([id, result]) => [id, result.error.issues])
-    );
+  const result = parser.safeParse(data);
 
-    return json(issues, { status: 400 });
+  // handle errors
+  if (!result.success) {
+    const errors = result.error.flatten();
+    console.log(errors);
+    return json(errors, { status: 400 });
   }
 
-  const data = {
+  // TODO store in database!
+  console.log(result.data);
+
+  const oldData = {
     labels: ["Openness", "Passion", "Collaboration"], // TODO
     datasets: [
       {
@@ -87,18 +89,14 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
     ],
   };
 
-  return redirect(`../chart?data=${objectToBase64(data)}`);
+  return redirect(`../chart?data=${objectToBase64(oldData)}`);
 };
 
 const errorsParser = z.optional(
-  z.record(
-    z.array(
-      z.object({
-        code: z.string(),
-        message: z.string(),
-      })
-    )
-  )
+  z.object({
+    formErrors: z.array(z.string()),
+    fieldErrors: z.record(z.array(z.string())),
+  })
 );
 
 export default () => {
@@ -110,7 +108,13 @@ export default () => {
   }
 
   const formRows = fields.map((field) => {
-    return <Field key={field.id} field={field} errors={errors?.[field.id]} />;
+    return (
+      <Field
+        key={field.id}
+        field={field}
+        errors={errors?.fieldErrors[field.id]}
+      />
+    );
   });
 
   return (

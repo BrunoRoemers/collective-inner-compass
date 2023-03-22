@@ -7,7 +7,7 @@ interface Props {
     type: FieldType;
     params: Prisma.JsonValue;
   };
-  errors?: { code: string; message: string }[];
+  errors?: string[];
 }
 
 const Field = ({ field, errors }: Props) => {
