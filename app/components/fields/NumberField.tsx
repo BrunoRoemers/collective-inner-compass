@@ -10,18 +10,24 @@ export const numberParamsParser = z.object({
 
 export type NumberParams = z.infer<typeof numberParamsParser>;
 
+export const getNumberInputParser = (params: NumberParams) =>
+  z
+    .union([z.string().nonempty({ message: "Required" }), z.number()])
+    .pipe(z.coerce.number().min(params.min).max(params.max));
+
 interface Props {
-  fieldId: string;
+  id: string;
   params: NumberParams;
+  errors?: { code: string; message: string }[];
 }
 
-const NumberField = ({ fieldId, params }: Props) => {
+const NumberField = ({ id, params, errors }: Props) => {
   return (
     <FormRow
       label={params.label}
-      errorMessages={[]} // TODO
+      errorMessages={errors?.map((error) => error.message)}
     >
-      <input type="number" name={fieldId} className="block w-full" />
+      <input type="number" name={id} className="block w-full" />
     </FormRow>
   );
 };

@@ -6,12 +6,14 @@ import { redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import objectToBase64 from "~/utils/objectToBase64.server";
 import Field from "~/components/Field";
+import {
+  getNumberInputParser,
+  numberParamsParser,
+} from "~/components/fields/NumberField";
 
-export const loader = async ({ params }: DataFunctionArgs) => {
-  const uuid = z.string().uuid().parse(params.uuid);
-
-  const fields = await db.field.findMany({
-    where: { questionnaireId: uuid },
+const getFieldsOfQuestionnaire = (questionnaireId: string) =>
+  db.field.findMany({
+    where: { questionnaireId },
     select: {
       id: true,
       type: true,
@@ -19,50 +21,61 @@ export const loader = async ({ params }: DataFunctionArgs) => {
     },
   });
 
+export const loader = async ({ params }: DataFunctionArgs) => {
+  const uuid = z.string().uuid().parse(params.uuid);
+
   return json({
     uuid,
-    fields,
+    fields: await getFieldsOfQuestionnaire(uuid),
   });
 };
 
 export const action = async ({ params, request }: DataFunctionArgs) => {
+  const uuid = z.string().uuid().parse(params.uuid);
+  const fields = await getFieldsOfQuestionnaire(uuid);
   const formData = await request.formData();
 
-  // TODO use ZOD: https://www.npmjs.com/package/zod
+  // TODO this can potentially be simplified if I construct a composite zod object
+  // TODO e.g. https://github.com/colinhacks/zod/blob/master/ERROR_HANDLING.md#error-handling-for-forms
+  const parserResults = fields.map(
+    (
+      field
+    ): [string, z.SafeParseSuccess<unknown> | z.SafeParseError<unknown>] => {
+      const submittedValue = formData.get(field.id);
 
-  // TODO repeating too much code...
-  const openness = parseInt(String(formData.get("openness")), 10);
-  const passion = parseInt(String(formData.get("passion")), 10);
-  const collaboration = parseInt(String(formData.get("collaboration")), 10);
+      switch (field.type) {
+        case "NUMBER":
+          const numberParams = numberParamsParser.parse(field.params);
+          return [
+            field.id,
+            getNumberInputParser(numberParams).safeParse(submittedValue),
+          ];
+        default:
+          throw new Error(
+            `type '${field.type}' of field '${field.id}' is not supported`
+          );
+      }
+    }
+  );
 
-  console.log(openness, passion, collaboration);
+  const errors = parserResults.filter(
+    ([id, result]) => result.success === false
+  ) as [string, z.SafeParseError<unknown>][];
 
-  const errors = {
-    openness:
-      isNaN(openness) || openness < 0 || openness > 100
-        ? "should be a number between 0 and 100"
-        : null,
-    passion:
-      isNaN(passion) || passion < 0 || passion > 100
-        ? "should be a number between 0 and 100"
-        : null,
-    collaboration:
-      isNaN(collaboration) || collaboration < 0 || collaboration > 100
-        ? "should be a number between 0 and 100"
-        : null,
-  };
+  if (errors.length > 0) {
+    const issues = Object.fromEntries(
+      errors.map(([id, result]) => [id, result.error.issues])
+    );
 
-  const hasErrors = Object.values(errors).some((v) => v);
-  if (hasErrors) {
-    return json(errors);
+    return json(issues, { status: 400 });
   }
 
   const data = {
-    labels: ["Openness", "Passion", "Collaboration"],
+    labels: ["Openness", "Passion", "Collaboration"], // TODO
     datasets: [
       {
         label: "My First Dataset",
-        data: [openness, passion, collaboration],
+        data: [], // TODO
         fill: true,
         backgroundColor: "rgba(255, 99, 132, 0.2)",
         borderColor: "rgb(255, 99, 132)",
@@ -77,18 +90,28 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
   return redirect(`../chart?data=${objectToBase64(data)}`);
 };
 
+const errorsParser = z.optional(
+  z.record(
+    z.array(
+      z.object({
+        code: z.string(),
+        message: z.string(),
+      })
+    )
+  )
+);
+
 export default () => {
   const { uuid, fields } = useLoaderData<typeof loader>();
-  const errors = useActionData<typeof action>();
-  // TODO render errors
+  const errors = errorsParser.parse(useActionData());
 
   if (fields.length < 1) {
     throw new Error(`questionnaire '${uuid}' does not have any fields`);
   }
 
-  const formRows = fields.map((field) => (
-    <Field key={field.id} field={field} />
-  ));
+  const formRows = fields.map((field) => {
+    return <Field key={field.id} field={field} errors={errors?.[field.id]} />;
+  });
 
   return (
     <div className="p-2">
