@@ -10,6 +10,7 @@ import {
   getNumberInputParser,
   numberParamsParser,
 } from "~/components/fields/NumberField";
+import zErrorsParser from "~/utils/zErrorsParser";
 
 const getFieldsOfQuestionnaire = (questionnaireId: string) =>
   db.field.findMany({
@@ -65,7 +66,6 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
   // handle errors
   if (!result.success) {
     const errors = result.error.flatten();
-    console.log(errors);
     return json(errors, { status: 400 });
   }
 
@@ -92,16 +92,9 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
   return redirect(`../chart?data=${objectToBase64(oldData)}`);
 };
 
-const errorsParser = z.optional(
-  z.object({
-    formErrors: z.array(z.string()),
-    fieldErrors: z.record(z.array(z.string())),
-  })
-);
-
 export default () => {
   const { uuid, fields } = useLoaderData<typeof loader>();
-  const errors = errorsParser.parse(useActionData());
+  const errors = zErrorsParser.parse(useActionData());
 
   if (fields.length < 1) {
     throw new Error(`questionnaire '${uuid}' does not have any fields`);
@@ -112,7 +105,7 @@ export default () => {
       <Field
         key={field.id}
         field={field}
-        errors={errors?.fieldErrors[field.id]}
+        errors={errors?.fieldErrors?.[field.id]}
       />
     );
   });
