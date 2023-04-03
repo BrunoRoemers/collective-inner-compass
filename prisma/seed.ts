@@ -15,15 +15,26 @@ const createNumberField = async (
   });
 
 async function main() {
+  const user1 = await prisma.user.create({
+    data: {
+      name: "Bruno",
+      email: "bruno@example.com",
+    },
+  });
+
+  console.log("seeded users:", {
+    user1,
+  });
+
   const questionnaire1 = await prisma.questionnaire.create({
     data: {
-      name: "hello world",
+      name: "Regens Unite",
     },
   });
 
   const questionnaire2 = await prisma.questionnaire.create({
     data: {
-      name: "beautiful world",
+      name: "Impactopia",
     },
   });
 
