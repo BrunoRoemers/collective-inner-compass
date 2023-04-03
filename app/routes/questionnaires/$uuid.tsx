@@ -4,7 +4,6 @@ import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import objectToBase64 from "~/utils/objectToBase64.server";
 import Field from "~/components/Field";
 import {
   getNumberInputParser,
@@ -12,7 +11,7 @@ import {
 } from "~/components/fields/NumberField";
 import zErrorsParser from "~/utils/zErrorsParser";
 
-const getUserUuid = async () => {
+const getUserId = async () => {
   const firstUser = await db.user.findFirstOrThrow();
   return firstUser.id;
 };
@@ -40,16 +39,17 @@ export const loader = async ({ params }: DataFunctionArgs) => {
 
   return json({
     uuid,
-    fields: await getFieldsAndAnswersOfQuestionnaire(uuid, await getUserUuid()),
+    fields: await getFieldsAndAnswersOfQuestionnaire(uuid, await getUserId()),
   });
 };
 
 export const action = async ({ params, request }: DataFunctionArgs) => {
   // inputs
+  const userId = await getUserId();
   const uuid = z.string().uuid().parse(params.uuid);
   const fields = await getFieldsAndAnswersOfQuestionnaire(
     uuid,
-    await getUserUuid()
+    await getUserId()
   );
   const formData = await request.formData();
 
@@ -85,27 +85,29 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
     return json(errors, { status: 400 });
   }
 
-  // TODO store in database!
-  console.log(result.data);
+  // store results in db
+  db.$transaction(
+    Object.entries(result.data).map(([fieldId, value]) => {
+      return db.answer.upsert({
+        where: {
+          userId_fieldId: {
+            userId: userId,
+            fieldId: fieldId,
+          },
+        },
+        update: {
+          data: { value: value },
+        },
+        create: {
+          userId: userId,
+          fieldId: fieldId,
+          data: { value: value },
+        },
+      });
+    })
+  );
 
-  const oldData = {
-    labels: ["Openness", "Passion", "Collaboration"], // TODO
-    datasets: [
-      {
-        label: "My First Dataset",
-        data: [], // TODO
-        fill: true,
-        backgroundColor: "rgba(255, 99, 132, 0.2)",
-        borderColor: "rgb(255, 99, 132)",
-        pointBackgroundColor: "rgb(255, 99, 132)",
-        pointBorderColor: "#fff",
-        pointHoverBackgroundColor: "#fff",
-        pointHoverBorderColor: "rgb(255, 99, 132)",
-      },
-    ],
-  };
-
-  return redirect(`../chart?data=${objectToBase64(oldData)}`);
+  return redirect(`../chart`);
 };
 
 export default () => {
