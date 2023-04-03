@@ -12,13 +12,26 @@ import {
 } from "~/components/fields/NumberField";
 import zErrorsParser from "~/utils/zErrorsParser";
 
-const getFieldsOfQuestionnaire = (questionnaireId: string) =>
+const getUserUuid = async () => {
+  const firstUser = await db.user.findFirstOrThrow();
+  return firstUser.id;
+};
+
+const getFieldsAndAnswersOfQuestionnaire = (
+  questionnaireId: string,
+  userId: string
+) =>
   db.field.findMany({
     where: { questionnaireId },
     select: {
       id: true,
       type: true,
       params: true,
+      answers: {
+        // NOTE: expecting 0 or 1 answers
+        where: { userId },
+        select: { data: true },
+      },
     },
   });
 
@@ -27,14 +40,17 @@ export const loader = async ({ params }: DataFunctionArgs) => {
 
   return json({
     uuid,
-    fields: await getFieldsOfQuestionnaire(uuid),
+    fields: await getFieldsAndAnswersOfQuestionnaire(uuid, await getUserUuid()),
   });
 };
 
 export const action = async ({ params, request }: DataFunctionArgs) => {
   // inputs
   const uuid = z.string().uuid().parse(params.uuid);
-  const fields = await getFieldsOfQuestionnaire(uuid);
+  const fields = await getFieldsAndAnswersOfQuestionnaire(
+    uuid,
+    await getUserUuid()
+  );
   const formData = await request.formData();
 
   // build parser
