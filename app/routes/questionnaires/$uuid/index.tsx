@@ -17,8 +17,8 @@ const getUserId = async () => {
 };
 
 const getFieldsAndAnswersOfQuestionnaire = (
-  questionnaireId: string,
-  userId: string
+  userId: string,
+  questionnaireId: string
 ) =>
   db.field.findMany({
     where: { questionnaireId },
@@ -35,21 +35,22 @@ const getFieldsAndAnswersOfQuestionnaire = (
   });
 
 export const loader = async ({ params }: DataFunctionArgs) => {
-  const uuid = z.string().uuid().parse(params.uuid);
+  const userId = await getUserId();
+  const questionnaireId = z.string().uuid().parse(params.uuid);
 
   return json({
-    uuid,
-    fields: await getFieldsAndAnswersOfQuestionnaire(uuid, await getUserId()),
+    uuid: questionnaireId,
+    fields: await getFieldsAndAnswersOfQuestionnaire(userId, questionnaireId),
   });
 };
 
 export const action = async ({ params, request }: DataFunctionArgs) => {
   // inputs
   const userId = await getUserId();
-  const uuid = z.string().uuid().parse(params.uuid);
+  const questionnaireId = z.string().uuid().parse(params.uuid);
   const fields = await getFieldsAndAnswersOfQuestionnaire(
-    uuid,
-    await getUserId()
+    userId,
+    questionnaireId
   );
   const formData = await request.formData();
 
@@ -107,7 +108,7 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
     })
   );
 
-  return redirect(`../chart`);
+  return redirect(`results`);
 };
 
 export default () => {
