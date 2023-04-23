@@ -1,3 +1,4 @@
+import { FieldType } from "@prisma/client";
 import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
@@ -9,6 +10,7 @@ import {
 } from "chart.js";
 import { Radar } from "react-chartjs-2";
 import { z } from "zod";
+import type { NumberParams } from "~/components/fields/NumberField";
 import {
   getNumberDataParser,
   numberParamsParser,
@@ -22,13 +24,30 @@ const getUserId = async () => {
   return firstUser.id;
 };
 
-const getFieldsAndAnswersOfQuestionnaire = (
+const fieldParser = (params: NumberParams) =>
+  z.object({
+    id: z.string(),
+    type: z.literal(FieldType.NUMBER),
+    params: numberParamsParser,
+    answers: z
+      .array(z.object({ content: getNumberDataParser(params) }))
+      .min(0)
+      .max(1),
+  });
+
+const parseFields = (rawFields: { params: unknown }[]) => {
+  return rawFields.map((field) => {
+    const params = numberParamsParser.parse(field.params);
+    return fieldParser(params).parse(field);
+  });
+};
+
+const getNumericResultsFromQuestionnaire = async (
   userId: string,
   questionnaireId: string
-) =>
-  db.field.findMany({
-    // TODO actually we only have to deal with the "number" fields here
-    where: { questionnaireId },
+) => {
+  const fields = await db.field.findMany({
+    where: { questionnaireId, type: "NUMBER" },
     select: {
       id: true,
       type: true,
@@ -36,52 +55,33 @@ const getFieldsAndAnswersOfQuestionnaire = (
       answers: {
         // NOTE: expecting 0 or 1 answers
         where: { userId },
-        select: { data: true },
+        select: { content: true },
       },
     },
   });
+
+  return parseFields(fields);
+};
 
 export const loader = async ({ params }: DataFunctionArgs) => {
   const userId = await getUserId();
   const questionnaireId = z.string().uuid().parse(params.uuid);
 
   return json({
-    fields: await getFieldsAndAnswersOfQuestionnaire(userId, questionnaireId),
+    fields: await getNumericResultsFromQuestionnaire(userId, questionnaireId),
   });
 };
 
 export default () => {
-  const { fields } = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
+  const fields = parseFields(loaderData.fields);
 
   const data = {
-    labels: fields.map((field) => {
-      switch (field.type) {
-        case "NUMBER":
-          const numberParams = numberParamsParser.parse(field.params);
-          return numberParams.label;
-        default:
-          throw new Error(
-            `type '${field.type}' of field '${field.id}' is not supported`
-          );
-      }
-    }),
+    labels: fields.map((field) => field.params.label),
     datasets: [
       {
         label: "Results",
-        data: fields.map((field) => {
-          switch (field.type) {
-            case "NUMBER":
-              const numberParams = numberParamsParser.parse(field.params);
-              const numberData = getNumberDataParser(numberParams).parse(
-                field.answers?.[0]?.data
-              );
-              return numberData?.value ?? 0;
-            default:
-              throw new Error(
-                `type '${field.type}' of field '${field.id}' is not supported`
-              );
-          }
-        }),
+        data: fields.map((field) => field.answers[0]?.content.value ?? 0),
         fill: true,
         backgroundColor: "rgba(255, 99, 132, 0.2)",
         borderColor: "rgb(255, 99, 132)",

@@ -1,4 +1,5 @@
-import type { FieldType, Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+import { FieldType } from "@prisma/client";
 import NumberField, {
   numberParamsParser,
   getNumberDataParser,
@@ -10,7 +11,7 @@ interface Props {
     type: FieldType;
     params: Prisma.JsonValue;
     answers: {
-      data: Prisma.JsonValue;
+      content: Prisma.JsonValue;
     }[];
   };
   errors?: string[];
@@ -18,16 +19,19 @@ interface Props {
 
 const Field = ({ field, errors }: Props) => {
   switch (field.type) {
-    case "NUMBER":
+    case FieldType.NUMBER:
       const numberParams = numberParamsParser.parse(field.params);
-      const numberData = getNumberDataParser(numberParams).parse(
-        field.answers?.[0]?.data
-      );
+
+      const answer = field.answers[0];
+      const defaultValue = answer
+        ? getNumberDataParser(numberParams).parse(answer.content).value
+        : 0;
+
       return (
         <NumberField
           id={field.id}
           params={numberParams}
-          defaultValue={numberData?.value}
+          defaultValue={defaultValue}
           errors={errors}
         ></NumberField>
       );

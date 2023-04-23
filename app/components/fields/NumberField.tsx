@@ -12,9 +12,9 @@ export type NumberParams = z.infer<typeof numberParamsParser>;
 
 // NOTE: we need a parser because this data is coming as JSON from the backend and/or database
 export const getNumberDataParser = (params: NumberParams) =>
-  z.optional(z.object({
+  z.object({
     value: z.number().min(params.min).max(params.max),
-  }));
+  });
 
 export type NumberData = z.infer<ReturnType<typeof getNumberDataParser>>;
 

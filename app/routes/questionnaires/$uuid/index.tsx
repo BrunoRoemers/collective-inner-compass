@@ -10,6 +10,7 @@ import {
   numberParamsParser,
 } from "~/components/fields/NumberField";
 import zErrorsParser from "~/utils/zErrorsParser";
+import { FieldType } from "@prisma/client";
 
 const getUserId = async () => {
   const firstUser = await db.user.findFirstOrThrow();
@@ -29,7 +30,7 @@ const getFieldsAndAnswersOfQuestionnaire = (
       answers: {
         // NOTE: expecting 0 or 1 answers
         where: { userId },
-        select: { data: true },
+        select: { content: true },
       },
     },
   });
@@ -59,7 +60,7 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
     Object.fromEntries(
       fields.map((field) => {
         switch (field.type) {
-          case "NUMBER":
+          case FieldType.NUMBER:
             const numberParams = numberParamsParser.parse(field.params);
             return [field.id, getNumberInputParser(numberParams)];
           default:
@@ -97,12 +98,12 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
           },
         },
         update: {
-          data: { value: value },
+          content: { value: value },
         },
         create: {
           userId: userId,
           fieldId: fieldId,
-          data: { value: value },
+          content: { value: value },
         },
       });
     })
