@@ -2,7 +2,7 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
-    "build": "remix build",
+    "build": "npx prisma migrate deploy && npx prisma generate && remix build",
     "dev": "concurrently npm:dev:*",
     "dev:remix": "remix dev",
     "dev:studio": "prisma studio",

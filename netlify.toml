@@ -1,5 +1,5 @@
 [build]
-  command = "remix build"
+  command = "npm run build"
   publish = "public"
 
 [dev]
@@ -15,6 +15,3 @@
   for = "/build/*"
   [headers.values]
     "Cache-Control" = "public, max-age=31536000, s-maxage=31536000"
-
-[[plugins]]
-  package = "/netlify/plugins/deploy-to-cockroach-db"
