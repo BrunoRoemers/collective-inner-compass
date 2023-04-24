@@ -30,7 +30,7 @@ const Field = ({ field, errors }: Props) => {
       const numberAnswer = field.answers[0];
       const numberDefaultValue = numberAnswer
         ? getNumberDataParser(numberParams).parse(numberAnswer.content).value
-        : 0;
+        : undefined;
 
       return (
         <NumberField
