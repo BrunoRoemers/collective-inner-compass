@@ -4,6 +4,11 @@ import NumberField, {
   numberParamsParser,
   getNumberDataParser,
 } from "./fields/NumberField";
+import TextField, {
+  getTextDataParser,
+  textParamsParser,
+} from "./fields/TextField";
+import ExplainerField, { explainerParamsParser } from "./fields/ExplainerField";
 
 interface Props {
   field: {
@@ -22,18 +27,44 @@ const Field = ({ field, errors }: Props) => {
     case FieldType.NUMBER:
       const numberParams = numberParamsParser.parse(field.params);
 
-      const answer = field.answers[0];
-      const defaultValue = answer
-        ? getNumberDataParser(numberParams).parse(answer.content).value
+      const numberAnswer = field.answers[0];
+      const numberDefaultValue = numberAnswer
+        ? getNumberDataParser(numberParams).parse(numberAnswer.content).value
         : 0;
 
       return (
         <NumberField
           id={field.id}
           params={numberParams}
-          defaultValue={defaultValue}
+          defaultValue={numberDefaultValue}
           errors={errors}
         ></NumberField>
+      );
+    case FieldType.TEXT:
+      const textParams = textParamsParser.parse(field.params);
+
+      const textAnswer = field.answers[0];
+      const textDefaultValue = textAnswer
+        ? getTextDataParser(textParams).parse(textAnswer.content).value
+        : "";
+
+      return (
+        <TextField
+          id={field.id}
+          params={textParams}
+          defaultValue={textDefaultValue}
+          errors={errors}
+        ></TextField>
+      );
+    case FieldType.EXPLAINER:
+      const explainerParams = explainerParamsParser.parse(field.params);
+
+      return (
+        <ExplainerField
+          id={field.id}
+          params={explainerParams}
+          errors={errors}
+        ></ExplainerField>
       );
     default:
       return (

@@ -42,6 +42,8 @@ model Field {
 
 enum FieldType {
   NUMBER
+  TEXT
+  EXPLAINER
 }
 
 model Answer {

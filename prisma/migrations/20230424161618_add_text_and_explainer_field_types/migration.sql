@@ -1,0 +1,3 @@
+-- AlterEnum
+ALTER TYPE "FieldType"ADD VALUE 'TEXT';
+ALTER TYPE "FieldType"ADD VALUE 'EXPLAINER';

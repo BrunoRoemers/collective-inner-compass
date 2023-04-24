@@ -11,6 +11,10 @@ import {
 } from "~/components/fields/NumberField";
 import zErrorsParser from "~/utils/zErrorsParser";
 import { FieldType } from "@prisma/client";
+import {
+  getTextInputParser,
+  textParamsParser,
+} from "~/components/fields/TextField";
 
 const getUserId = async () => {
   const firstUser = await db.user.findFirstOrThrow();
@@ -58,17 +62,22 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
   // build parser
   const parser = z.object(
     Object.fromEntries(
-      fields.map((field) => {
-        switch (field.type) {
-          case FieldType.NUMBER:
-            const numberParams = numberParamsParser.parse(field.params);
-            return [field.id, getNumberInputParser(numberParams)];
-          default:
-            throw new Error(
-              `type '${field.type}' of field '${field.id}' is not supported`
-            );
-        }
-      })
+      fields
+        .filter((field) => field.type != FieldType.EXPLAINER)
+        .map((field) => {
+          switch (field.type) {
+            case FieldType.NUMBER:
+              const numberParams = numberParamsParser.parse(field.params);
+              return [field.id, getNumberInputParser(numberParams)];
+            case FieldType.TEXT:
+              const textParams = textParamsParser.parse(field.params);
+              return [field.id, getTextInputParser(textParams)];
+            default:
+              throw new Error(
+                `type '${field.type}' of field '${field.id}' is not supported`
+              );
+          }
+        })
     )
   );
 
