@@ -1,7 +1,7 @@
 import { FieldType, PrismaClient } from "@prisma/client";
-import type { ExplainerParams } from "~/components/fields/ExplainerField";
-import type { NumberParams } from "~/components/fields/NumberField";
-import type { TextParams } from "~/components/fields/TextField";
+import type { Params as ExplainerParams } from "~/components/fields/ExplainerField";
+import type { Params as NumberParams } from "~/components/fields/NumberField";
+import type { Params as TextParams } from "~/components/fields/TextField";
 const prisma = new PrismaClient();
 
 const createNumberField = async (

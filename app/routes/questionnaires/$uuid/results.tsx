@@ -10,11 +10,8 @@ import {
 } from "chart.js";
 import { Radar } from "react-chartjs-2";
 import { z } from "zod";
-import type { NumberParams } from "~/components/fields/NumberField";
-import {
-  getNumberDataParser,
-  numberParamsParser,
-} from "~/components/fields/NumberField";
+import type { Params } from "~/components/fields/NumberField";
+import numberField from "~/components/fields/NumberField";
 import { db } from "~/utils/db.server";
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement);
@@ -24,20 +21,20 @@ const getUserId = async () => {
   return firstUser.id;
 };
 
-const fieldParser = (params: NumberParams) =>
+const fieldParser = (params: Params) =>
   z.object({
     id: z.string(),
     type: z.literal(FieldType.NUMBER),
-    params: numberParamsParser,
+    params: numberField.paramsParser,
     answers: z
-      .array(z.object({ content: getNumberDataParser(params) }))
+      .array(z.object({ content: numberField.getContentParser(params) }))
       .min(0)
       .max(1),
   });
 
 const parseFields = (rawFields: { params: unknown }[]) => {
   return rawFields.map((field) => {
-    const params = numberParamsParser.parse(field.params);
+    const params = numberField.paramsParser.parse(field.params);
     return fieldParser(params).parse(field);
   });
 };

@@ -1,35 +1,29 @@
 import { z } from "zod";
 import FormRow from "../FormRow";
+import type Field from "./Field";
+import type { FieldProps } from "./Field";
 
 // NOTE: we need a parser because this data is coming as JSON from the backend and/or database
-export const textParamsParser = z.object({
+const paramsParser = z.object({
   label: z.string(),
 });
 
-export type TextParams = z.infer<typeof textParamsParser>;
-
 // NOTE: we need a parser because this data is coming as JSON from the backend and/or database
-export const getTextDataParser = (params: TextParams) =>
+const getContentParser = (params: Params) =>
   z.object({
     value: z.string(),
   });
 
-export type TextData = z.infer<ReturnType<typeof getTextDataParser>>;
-
 // NOTE: we need a parser because this data is coming from the user
-export const getTextInputParser = (params: TextParams) =>
+const getInputParser = (params: Params) =>
   z.string().nonempty({ message: "Required" });
 
-export type TextInput = z.infer<ReturnType<typeof getTextInputParser>>;
-
-export interface Props {
-  id: string;
-  params: TextParams;
-  defaultValue?: string;
-  errors?: string[];
-}
-
-const TextField = ({ id, params, defaultValue, errors }: Props) => {
+const Element = ({
+  id,
+  params,
+  defaultValue,
+  errors,
+}: FieldProps<Params, Input>) => {
   return (
     <FormRow label={params.label} errorMessages={errors}>
       <input
@@ -42,4 +36,14 @@ const TextField = ({ id, params, defaultValue, errors }: Props) => {
   );
 };
 
-export default TextField;
+const field: Field<Params, Content, Input> = {
+  paramsParser,
+  getContentParser,
+  getInputParser,
+  Element,
+};
+
+export default field;
+export type Params = z.infer<typeof paramsParser>;
+export type Content = z.infer<ReturnType<typeof getContentParser>>;
+export type Input = z.infer<ReturnType<typeof getInputParser>>;

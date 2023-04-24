@@ -1,22 +1,32 @@
 import { z } from "zod";
+import type { FieldProps } from "./Field";
+import type Field from "./Field";
 
 // NOTE: we need a parser because this data is coming as JSON from the backend and/or database
-export const explainerParamsParser = z.object({
+const paramsParser = z.object({
   title: z.string(),
   text: z.string(),
 });
 
-export type ExplainerParams = z.infer<typeof explainerParamsParser>;
+// NOTE: hack to fulfil the interface
+const getContentParser = (params: Params) => z.never();
 
-export interface Props {
-  id: string;
-  params: ExplainerParams;
-  defaultValue?: string;
-  errors?: string[];
-}
+// NOTE: hack to fulfil the interface
+const getInputParser = (params: Params) => z.never();
 
-const ExplainerField = ({ id, params, defaultValue, errors }: Props) => {
+const Element = ({ id, params }: FieldProps<Params, Input>) => {
   return <div>{params.text}</div>;
 };
 
-export default ExplainerField;
+const field: Field<Params, Content, Input> = {
+  paramsParser,
+  getContentParser,
+  getInputParser,
+  Element,
+};
+
+export default field;
+export type Params = z.infer<typeof paramsParser>;
+export type Content = z.infer<ReturnType<typeof getContentParser>>;
+export type Input = z.infer<ReturnType<typeof getInputParser>>;
+

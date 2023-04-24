@@ -1,14 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import { FieldType } from "@prisma/client";
-import NumberField, {
-  numberParamsParser,
-  getNumberDataParser,
-} from "./fields/NumberField";
-import TextField, {
-  getTextDataParser,
-  textParamsParser,
-} from "./fields/TextField";
-import ExplainerField, { explainerParamsParser } from "./fields/ExplainerField";
+import numberField from "./fields/NumberField";
+import textField from "./fields/TextField";
+import explainerField from "./fields/ExplainerField";
 
 interface Props {
   field: {
@@ -25,46 +19,47 @@ interface Props {
 const Field = ({ field, errors }: Props) => {
   switch (field.type) {
     case FieldType.NUMBER:
-      const numberParams = numberParamsParser.parse(field.params);
+      const numberParams = numberField.paramsParser.parse(field.params);
 
       const numberAnswer = field.answers[0];
       const numberDefaultValue = numberAnswer
-        ? getNumberDataParser(numberParams).parse(numberAnswer.content).value
+        ? numberField.getContentParser(numberParams).parse(numberAnswer.content)
+            .value
         : undefined;
 
       return (
-        <NumberField
+        <numberField.Element
           id={field.id}
           params={numberParams}
           defaultValue={numberDefaultValue}
           errors={errors}
-        ></NumberField>
+        ></numberField.Element>
       );
     case FieldType.TEXT:
-      const textParams = textParamsParser.parse(field.params);
+      const textParams = textField.paramsParser.parse(field.params);
 
       const textAnswer = field.answers[0];
       const textDefaultValue = textAnswer
-        ? getTextDataParser(textParams).parse(textAnswer.content).value
+        ? textField.getContentParser(textParams).parse(textAnswer.content).value
         : "";
 
       return (
-        <TextField
+        <textField.Element
           id={field.id}
           params={textParams}
           defaultValue={textDefaultValue}
           errors={errors}
-        ></TextField>
+        ></textField.Element>
       );
     case FieldType.EXPLAINER:
-      const explainerParams = explainerParamsParser.parse(field.params);
+      const explainerParams = explainerField.paramsParser.parse(field.params);
 
       return (
-        <ExplainerField
+        <explainerField.Element
           id={field.id}
           params={explainerParams}
           errors={errors}
-        ></ExplainerField>
+        ></explainerField.Element>
       );
     default:
       return (

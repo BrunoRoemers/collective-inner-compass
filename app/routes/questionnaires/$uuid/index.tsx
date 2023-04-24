@@ -5,16 +5,10 @@ import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import Field from "~/components/Field";
-import {
-  getNumberInputParser,
-  numberParamsParser,
-} from "~/components/fields/NumberField";
+import numberField from "~/components/fields/NumberField";
 import zErrorsParser from "~/utils/zErrorsParser";
 import { FieldType } from "@prisma/client";
-import {
-  getTextInputParser,
-  textParamsParser,
-} from "~/components/fields/TextField";
+import textField from "~/components/fields/TextField";
 
 const getUserId = async () => {
   const firstUser = await db.user.findFirstOrThrow();
@@ -67,11 +61,11 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
         .map((field) => {
           switch (field.type) {
             case FieldType.NUMBER:
-              const numberParams = numberParamsParser.parse(field.params);
-              return [field.id, getNumberInputParser(numberParams)];
+              const numberParams = numberField.paramsParser.parse(field.params);
+              return [field.id, numberField.getInputParser(numberParams)];
             case FieldType.TEXT:
-              const textParams = textParamsParser.parse(field.params);
-              return [field.id, getTextInputParser(textParams)];
+              const textParams = textField.paramsParser.parse(field.params);
+              return [field.id, textField.getInputParser(textParams)];
             default:
               throw new Error(
                 `type '${field.type}' of field '${field.id}' is not supported`

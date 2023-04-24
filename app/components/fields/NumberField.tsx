@@ -1,39 +1,33 @@
 import { z } from "zod";
 import FormRow from "../FormRow";
+import type Field from "./Field";
+import type { FieldProps } from "./Field";
 
 // NOTE: we need a parser because this data is coming as JSON from the backend and/or database
-export const numberParamsParser = z.object({
+const paramsParser = z.object({
   label: z.string(),
   min: z.number(),
   max: z.number(),
 });
 
-export type NumberParams = z.infer<typeof numberParamsParser>;
-
 // NOTE: we need a parser because this data is coming as JSON from the backend and/or database
-export const getNumberDataParser = (params: NumberParams) =>
+const getContentParser = (params: Params) =>
   z.object({
     value: z.number().min(params.min).max(params.max),
   });
 
-export type NumberData = z.infer<ReturnType<typeof getNumberDataParser>>;
-
 // NOTE: we need a parser because this data is coming from the user
-export const getNumberInputParser = (params: NumberParams) =>
+const getInputParser = (params: Params) =>
   z
     .union([z.string().nonempty({ message: "Required" }), z.number()])
     .pipe(z.coerce.number().min(params.min).max(params.max));
 
-export type NumberInput = z.infer<ReturnType<typeof getNumberInputParser>>;
-
-export interface Props {
-  id: string;
-  params: NumberParams;
-  defaultValue?: number;
-  errors?: string[];
-}
-
-const NumberField = ({ id, params, defaultValue, errors }: Props) => {
+const Element = ({
+  id,
+  params,
+  defaultValue,
+  errors,
+}: FieldProps<Params, Input>) => {
   return (
     <FormRow label={params.label} errorMessages={errors}>
       <input
@@ -46,4 +40,14 @@ const NumberField = ({ id, params, defaultValue, errors }: Props) => {
   );
 };
 
-export default NumberField;
+const field: Field<Params, Content, Input> = {
+  paramsParser,
+  getContentParser,
+  getInputParser,
+  Element,
+};
+
+export default field;
+export type Params = z.infer<typeof paramsParser>;
+export type Content = z.infer<ReturnType<typeof getContentParser>>;
+export type Input = z.infer<ReturnType<typeof getInputParser>>;
