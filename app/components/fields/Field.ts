@@ -7,15 +7,7 @@ export interface FieldProps<Params, Input> {
   errors?: string[];
 }
 
-export default interface Field<Params, Content, Input> {
-  // parser for the params of a field (database model)
-  paramsParser: z.ZodType<Params, z.ZodTypeDef, unknown>;
-
-  // parser for the content of an answer (database model)
-  getContentParser: (
-    params: Params
-  ) => z.ZodType<Content, z.ZodTypeDef, unknown>;
-
+export default interface Field<Params, Input> {
   // TODO how can I get rid of this, and incorporate it into content?
   // parser for user input
   getInputParser: (params: Params) => z.ZodType<Input, z.ZodTypeDef, unknown>;

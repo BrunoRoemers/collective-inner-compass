@@ -2,20 +2,10 @@ import { z } from "zod";
 import FormRow from "../FormRow";
 import type Field from "./Field";
 import type { FieldProps } from "./Field";
-
-// NOTE: we need a parser because this data is coming as JSON from the backend and/or database
-const paramsParser = z.object({
-  label: z.string(),
-});
-
-// NOTE: we need a parser because this data is coming as JSON from the backend and/or database
-const getContentParser = (params: Params) =>
-  z.object({
-    value: z.string(),
-  });
+import type { TextFieldParams } from "~/schemas/fields/textField";
 
 // NOTE: we need a parser because this data is coming from the user
-const getInputParser = (params: Params) =>
+const getInputParser = (params: TextFieldParams) =>
   z.string().nonempty({ message: "Required" });
 
 const Element = ({
@@ -23,7 +13,7 @@ const Element = ({
   params,
   defaultValue,
   errors,
-}: FieldProps<Params, Input>) => {
+}: FieldProps<TextFieldParams, Input>) => {
   return (
     <FormRow label={params.label} errorMessages={errors}>
       <input
@@ -36,14 +26,10 @@ const Element = ({
   );
 };
 
-const field: Field<Params, Content, Input> = {
-  paramsParser,
-  getContentParser,
+const field: Field<TextFieldParams, Input> = {
   getInputParser,
   Element,
 };
 
 export default field;
-export type Params = z.infer<typeof paramsParser>;
-export type Content = z.infer<ReturnType<typeof getContentParser>>;
 export type Input = z.infer<ReturnType<typeof getInputParser>>;
