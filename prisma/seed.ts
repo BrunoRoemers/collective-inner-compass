@@ -259,6 +259,92 @@ async function main() {
     },
     { depth: null }
   );
+
+  /////////////////////////////////////////////////
+  // SEED QUESTIONNAIRE FOR REGENS UNITE (SHORT) //
+  /////////////////////////////////////////////////
+
+  const questionnaire3 = await prisma.questionnaire.create({
+    data: {
+      name: "Regens Unite (Short)",
+    },
+  });
+
+  const fields3 = await createFields(questionnaire3.id, [
+    [
+      FieldType.EXPLAINER,
+      {
+        title: "(Re)connecting",
+        text: "As humans, we are a part of nature. We are connected with our environment, with our bodies and with each other. We are aware of the environmental impact of our actions and act consciously. At the event we are reminded of that.",
+      },
+    ],
+    [
+      FieldType.NUMBER,
+      {
+        label: `Rate alignment on value "(re)connecting"`,
+        chartLabel: `(re)connecting`,
+        min: 0,
+        max: 100,
+      },
+    ],
+    [
+      FieldType.EXPLAINER,
+      {
+        title: "Participation",
+        text: "Participants and organisers are all considered equal members and contributors to the event and the Regens Unite commons. All voices are equally important in the conversation and we share responsibility to hold a regenerative space. We are all crew.",
+      },
+    ],
+    [
+      FieldType.NUMBER,
+      {
+        label: `Rate alignment on value "participation"`,
+        chartLabel: `participation`,
+        min: 0,
+        max: 100,
+      },
+    ],
+    [
+      FieldType.EXPLAINER,
+      {
+        title: "Diversity",
+        text: "We invite people from a wide variety of regen backgrounds. We make the event accessible for ev- eryone to come, including locals, parents and people who need to travel and take time off to participate. The attendee list and schedule are curated to ensure balance, diversity and space for underrepresented voices.",
+      },
+    ],
+    [
+      FieldType.NUMBER,
+      {
+        label: `Rate alignment on value "diversity"`,
+        chartLabel: `diversity`,
+        min: 0,
+        max: 100,
+      },
+    ],
+    [
+      FieldType.EXPLAINER,
+      {
+        title: "Cross-pollination",
+        text: "The focus of this event is to bring humans from various regenerative backgrounds & perspectives together for intimate, thought-provoking exchanges as well as rejuvenating experiences. We create a safe and curious atmosphere through nurturing the relational fabric and community-wide rituals. From this connection, we can bravely explore new ways to regenerate and meet each other beyond labels and biases.",
+      },
+    ],
+    [
+      FieldType.NUMBER,
+      {
+        label: `Rate alignment on value "cross-pollination"`,
+        chartLabel: `cross-pollination`,
+        min: 0,
+        max: 100,
+      },
+    ],
+  ]);
+
+  console.log("seeded questionnaire for Regens Unite (Short):");
+  console.dir(
+    {
+      questionnaire3,
+      fields3,
+    },
+    { depth: null }
+  );
 }
 
 main()
