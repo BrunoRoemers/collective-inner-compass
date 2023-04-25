@@ -38,6 +38,9 @@ const getFieldsAndAnswersOfQuestionnaire = async (
         select: { content: true },
       },
     },
+    orderBy: {
+      order: "asc",
+    },
   });
 
   const parsedFields = rawFields.map((field) =>
