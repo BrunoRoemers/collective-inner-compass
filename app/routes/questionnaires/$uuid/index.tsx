@@ -7,19 +7,15 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import zErrorsParser from "~/utils/zErrorsParser";
 import { FieldType } from "@prisma/client";
 import assertUnreachable from "~/utils/assertUnreachable";
-import {
-  numberFieldInput,
-  parseNumberFieldWithZeroOrOneAnswers,
-} from "~/schemas/fields/numberField";
-import {
-  parseTextFieldWithZeroOrOneAnswers,
-  textFieldInput,
-} from "~/schemas/fields/textField";
-import { parseExplainerField } from "~/schemas/fields/explainerField";
+import { numberFieldInput } from "~/schemas/fields/numberField";
+import { textFieldInput } from "~/schemas/fields/textField";
 import NumberField from "~/components/fields/NumberField";
 import TextField from "~/components/fields/TextField";
 import ExplainerField from "~/components/fields/ExplainerField";
-import { updatableField } from "~/schemas/fields/anyField";
+import {
+  parseAnyFieldWithZeroOrOneAnswers,
+  updatableField,
+} from "~/schemas/fields/anyField";
 
 const getUserId = async () => {
   const firstUser = await db.user.findFirstOrThrow();
@@ -44,18 +40,9 @@ const getFieldsAndAnswersOfQuestionnaire = async (
     },
   });
 
-  const parsedFields = rawFields.map((field) => {
-    switch (field.type) {
-      case FieldType.NUMBER:
-        return parseNumberFieldWithZeroOrOneAnswers(field);
-      case FieldType.TEXT:
-        return parseTextFieldWithZeroOrOneAnswers(field);
-      case FieldType.EXPLAINER:
-        return parseExplainerField(field);
-      default:
-        return assertUnreachable(field.type);
-    }
-  });
+  const parsedFields = rawFields.map((field) =>
+    parseAnyFieldWithZeroOrOneAnswers(field)
+  );
 
   return parsedFields;
 };
