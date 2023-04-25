@@ -1,4 +1,3 @@
-import { FieldType } from "@prisma/client";
 import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
@@ -10,8 +9,13 @@ import {
 } from "chart.js";
 import { Radar } from "react-chartjs-2";
 import { z } from "zod";
-import type { Params } from "~/components/fields/NumberField";
-import numberField from "~/components/fields/NumberField";
+import {
+  includeParams,
+  includeZeroOrOneAnswer,
+  keepFirstAnswer,
+  numberField,
+  numberFieldParams,
+} from "~/schemas/fields/numberField";
 import { db } from "~/utils/db.server";
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement);
@@ -21,29 +25,11 @@ const getUserId = async () => {
   return firstUser.id;
 };
 
-const fieldParser = (params: Params) =>
-  z.object({
-    id: z.string(),
-    type: z.literal(FieldType.NUMBER),
-    params: numberField.paramsParser,
-    answers: z
-      .array(z.object({ content: numberField.getContentParser(params) }))
-      .min(0)
-      .max(1),
-  });
-
-const parseFields = (rawFields: { params: unknown }[]) => {
-  return rawFields.map((field) => {
-    const params = numberField.paramsParser.parse(field.params);
-    return fieldParser(params).parse(field);
-  });
-};
-
 const getNumericResultsFromQuestionnaire = async (
   userId: string,
   questionnaireId: string
 ) => {
-  const fields = await db.field.findMany({
+  const rawFields = await db.field.findMany({
     where: { questionnaireId, type: "NUMBER" },
     select: {
       id: true,
@@ -57,7 +43,16 @@ const getNumericResultsFromQuestionnaire = async (
     },
   });
 
-  return parseFields(fields);
+  const parsedFields = rawFields.map((field) => {
+    const params = numberFieldParams.parse(field.params);
+    return numberField
+      .merge(includeParams)
+      .merge(includeZeroOrOneAnswer(params))
+      .transform(keepFirstAnswer)
+      .parse(field);
+  });
+
+  return parsedFields;
 };
 
 export const loader = async ({ params }: DataFunctionArgs) => {
@@ -70,15 +65,14 @@ export const loader = async ({ params }: DataFunctionArgs) => {
 };
 
 export default () => {
-  const loaderData = useLoaderData<typeof loader>();
-  const fields = parseFields(loaderData.fields);
+  const { fields } = useLoaderData<typeof loader>();
 
   const data = {
     labels: fields.map((field) => field.params.label),
     datasets: [
       {
         label: "Results",
-        data: fields.map((field) => field.answers[0]?.content.value ?? 0),
+        data: fields.map((field) => field.answer?.content.value ?? 0),
         fill: true,
         backgroundColor: "rgba(255, 99, 132, 0.2)",
         borderColor: "rgb(255, 99, 132)",
