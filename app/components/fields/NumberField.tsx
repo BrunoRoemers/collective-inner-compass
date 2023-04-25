@@ -1,21 +1,17 @@
-import { z } from "zod";
 import FormRow from "../FormRow";
 import type Field from "./Field";
 import type { FieldProps } from "./Field";
-import type { NumberFieldParams } from "~/schemas/fields/numberField";
-
-// NOTE: we need a parser because this data is coming from the user
-const getInputParser = (params: NumberFieldParams) =>
-  z
-    .union([z.string().nonempty({ message: "Required" }), z.number()])
-    .pipe(z.coerce.number().min(params.min).max(params.max));
+import type {
+  NumberFieldInput,
+  NumberFieldParams,
+} from "~/schemas/fields/numberField";
 
 const Element = ({
   id,
   params,
   defaultValue,
   errors,
-}: FieldProps<NumberFieldParams, Input>) => {
+}: FieldProps<NumberFieldParams, NumberFieldInput>) => {
   return (
     <FormRow label={params.label} errorMessages={errors}>
       <input
@@ -28,10 +24,8 @@ const Element = ({
   );
 };
 
-const field: Field<NumberFieldParams, Input> = {
-  getInputParser,
+const field: Field<NumberFieldParams, NumberFieldInput> = {
   Element,
 };
 
 export default field;
-export type Input = z.infer<ReturnType<typeof getInputParser>>;

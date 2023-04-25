@@ -8,9 +8,5 @@ export interface FieldProps<Params, Input> {
 }
 
 export default interface Field<Params, Input> {
-  // TODO how can I get rid of this, and incorporate it into content?
-  // parser for user input
-  getInputParser: (params: Params) => z.ZodType<Input, z.ZodTypeDef, unknown>;
-
   Element: (props: FieldProps<Params, Input>) => JSX.Element;
 }
