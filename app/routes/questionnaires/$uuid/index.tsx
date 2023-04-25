@@ -9,11 +9,9 @@ import { FieldType } from "@prisma/client";
 import assertUnreachable from "~/utils/assertUnreachable";
 import {
   numberFieldInput,
-  parseNumberField,
   parseNumberFieldWithZeroOrOneAnswers,
 } from "~/schemas/fields/numberField";
 import {
-  parseTextField,
   parseTextFieldWithZeroOrOneAnswers,
   textFieldInput,
 } from "~/schemas/fields/textField";
@@ -21,6 +19,7 @@ import { parseExplainerField } from "~/schemas/fields/explainerField";
 import NumberField from "~/components/fields/NumberField";
 import TextField from "~/components/fields/TextField";
 import ExplainerField from "~/components/fields/ExplainerField";
+import { updatableField } from "~/schemas/fields/anyField";
 
 const getUserId = async () => {
   const firstUser = await db.user.findFirstOrThrow();
@@ -81,18 +80,7 @@ const getUpdatableFields = async (userId: string, questionnaireId: string) => {
     },
   });
 
-  const parsedFields = rawFields.map((field) => {
-    switch (field.type) {
-      case FieldType.NUMBER:
-        return parseNumberField(field);
-      case FieldType.TEXT:
-        return parseTextField(field);
-      case FieldType.EXPLAINER:
-        throw new Error("explainer fields are not updatable");
-      default:
-        return assertUnreachable(field.type);
-    }
-  });
+  const parsedFields = z.array(updatableField).parse(rawFields);
 
   return parsedFields;
 };
