@@ -85,6 +85,9 @@ export default () => {
       r: {
         min: 0,
         max: 100,
+        ticks: {
+          stepSize: 20,
+        },
       },
     },
   };
