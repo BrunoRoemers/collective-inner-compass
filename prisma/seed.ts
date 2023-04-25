@@ -63,14 +63,14 @@ async function main() {
     [
       FieldType.EXPLAINER,
       {
-        title: "(re)connecting",
+        title: "(Re)connecting",
         text: "As humans, we are a part of nature. We are connected with our environment, with our bodies and with each other. We are aware of the environmental impact of our actions and act consciously. At the event we are reminded of that.",
       },
     ],
     [
       FieldType.TEXT,
       {
-        label: `top 3 best practices (aligned with (re)connecting)`,
+        label: `Top 3 best practices (aligned with (re)connecting)`,
       },
     ],
     [
@@ -84,14 +84,14 @@ async function main() {
     [
       FieldType.EXPLAINER,
       {
-        title: "participation",
+        title: "Participation",
         text: "Participants and organisers are all considered equal members and contributors to the event and the Regens Unite commons. All voices are equally important in the conversation and we share responsibility to hold a regenerative space. We are all crew.",
       },
     ],
     [
       FieldType.TEXT,
       {
-        label: `top 3 best practices (aligned with participation)`,
+        label: `Top 3 best practices (aligned with participation)`,
       },
     ],
     [
@@ -105,14 +105,14 @@ async function main() {
     [
       FieldType.EXPLAINER,
       {
-        title: "regeneration",
+        title: "Regeneration",
         text: "We all leave the event feeling fresh and rejuvenated. We leave the venue and location in a better state after our being there. We use our financial resources with a focus on minimalism, usefullness, recycling and supporting the local economy. We prioritize paying people over expensive venues and decorations.",
       },
     ],
     [
       FieldType.TEXT,
       {
-        label: "top 3 best practices (aligned with regeneration)",
+        label: "Top 3 best practices (aligned with regeneration)",
       },
     ],
     [
@@ -126,14 +126,14 @@ async function main() {
     [
       FieldType.EXPLAINER,
       {
-        title: "diversity",
+        title: "Diversity",
         text: "We invite people from a wide variety of regen backgrounds. We make the event accessible for ev- eryone to come, including locals, parents and people who need to travel and take time off to participate. The attendee list and schedule are curated to ensure balance, diversity and space for underrepresented voices.",
       },
     ],
     [
       FieldType.TEXT,
       {
-        label: `top 3 best practices (aligned with diversity)`,
+        label: `Top 3 best practices (aligned with diversity)`,
       },
     ],
     [
@@ -147,14 +147,14 @@ async function main() {
     [
       FieldType.EXPLAINER,
       {
-        title: "cross-pollination",
+        title: "Cross-pollination",
         text: "The focus of this event is to bring humans from various regenerative backgrounds & perspectives together for intimate, thought-provoking exchanges as well as rejuvenating experiences. We create a safe and curious atmosphere through nurturing the relational fabric and community-wide rituals. From this connection, we can bravely explore new ways to regenerate and meet each other beyond labels and biases.",
       },
     ],
     [
       FieldType.TEXT,
       {
-        label: `top 3 best practices (aligned with cross-pollination)`,
+        label: `Top 3 best practices (aligned with cross-pollination)`,
       },
     ],
     [
