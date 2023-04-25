@@ -1,17 +1,16 @@
 import FormRow from "../FormRow";
 import type Field from "./Field";
-import type { FieldProps } from "./Field";
 import type {
   TextFieldInput,
   TextFieldParams,
 } from "~/schemas/fields/textField";
 
-const Element = ({
+const TextField: Field<TextFieldParams, TextFieldInput> = ({
   id,
   params,
   defaultValue,
   errors,
-}: FieldProps<TextFieldParams, TextFieldInput>) => {
+}) => {
   return (
     <FormRow label={params.label} errorMessages={errors}>
       <input
@@ -24,8 +23,4 @@ const Element = ({
   );
 };
 
-const field: Field<TextFieldParams, TextFieldInput> = {
-  Element,
-};
-
-export default field;
+export default TextField;

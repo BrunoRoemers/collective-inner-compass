@@ -18,9 +18,9 @@ import {
   textFieldInput,
 } from "~/schemas/fields/textField";
 import { parseExplainerField } from "~/schemas/fields/explainerField";
-import numberField from "~/components/fields/NumberField";
-import textField from "~/components/fields/TextField";
-import explainerField from "~/components/fields/ExplainerField";
+import NumberField from "~/components/fields/NumberField";
+import TextField from "~/components/fields/TextField";
+import ExplainerField from "~/components/fields/ExplainerField";
 
 const getUserId = async () => {
   const firstUser = await db.user.findFirstOrThrow();
@@ -176,31 +176,31 @@ export default () => {
     switch (type) {
       case FieldType.NUMBER:
         return (
-          <numberField.Element
+          <NumberField
             key={field.id}
             id={field.id}
             params={field.params}
             defaultValue={field.answer?.content.value}
             errors={rowErrors}
-          ></numberField.Element>
+          ></NumberField>
         );
       case FieldType.TEXT:
         return (
-          <textField.Element
+          <TextField
             key={field.id}
             id={field.id}
             params={field.params}
             defaultValue={field.answer?.content.value}
             errors={rowErrors}
-          ></textField.Element>
+          ></TextField>
         );
       case FieldType.EXPLAINER:
         return (
-          <explainerField.Element
+          <ExplainerField
             key={field.id}
             id={field.id}
             params={field.params}
-          ></explainerField.Element>
+          ></ExplainerField>
         );
       default:
         return assertUnreachable(type);

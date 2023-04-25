@@ -1,17 +1,16 @@
 import FormRow from "../FormRow";
 import type Field from "./Field";
-import type { FieldProps } from "./Field";
 import type {
   NumberFieldInput,
   NumberFieldParams,
 } from "~/schemas/fields/numberField";
 
-const Element = ({
+const NumberField: Field<NumberFieldParams, NumberFieldInput> = ({
   id,
   params,
   defaultValue,
   errors,
-}: FieldProps<NumberFieldParams, NumberFieldInput>) => {
+}) => {
   return (
     <FormRow label={params.label} errorMessages={errors}>
       <input
@@ -24,8 +23,4 @@ const Element = ({
   );
 };
 
-const field: Field<NumberFieldParams, NumberFieldInput> = {
-  Element,
-};
-
-export default field;
+export default NumberField;

@@ -8,5 +8,5 @@ export interface FieldProps<Params, Input> {
 }
 
 export default interface Field<Params, Input> {
-  Element: (props: FieldProps<Params, Input>) => JSX.Element;
+  (props: FieldProps<Params, Input>): JSX.Element;
 }
