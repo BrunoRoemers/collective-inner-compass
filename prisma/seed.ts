@@ -1,12 +1,12 @@
 import { FieldType, PrismaClient } from "@prisma/client";
-import type { Params as ExplainerParams } from "~/components/fields/ExplainerField";
-import type { Params as NumberParams } from "~/components/fields/NumberField";
-import type { Params as TextParams } from "~/components/fields/TextField";
+import type { ExplainerFieldParams } from "~/schemas/fields/explainerField";
+import type { NumberFieldParams } from "~/schemas/fields/numberField";
+import type { TextFieldParams } from "~/schemas/fields/textField";
 const prisma = new PrismaClient();
 
 const createNumberField = async (
   questionnaireId: string,
-  params: NumberParams
+  params: NumberFieldParams
 ) =>
   prisma.field.create({
     data: {
@@ -16,7 +16,10 @@ const createNumberField = async (
     },
   });
 
-const createTextField = async (questionnaireId: string, params: TextParams) =>
+const createTextField = async (
+  questionnaireId: string,
+  params: TextFieldParams
+) =>
   prisma.field.create({
     data: {
       questionnaireId,
@@ -27,7 +30,7 @@ const createTextField = async (questionnaireId: string, params: TextParams) =>
 
 const createExplainerField = async (
   questionnaireId: string,
-  params: ExplainerParams
+  params: ExplainerFieldParams
 ) =>
   prisma.field.create({
     data: {
