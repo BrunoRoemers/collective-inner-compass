@@ -74,6 +74,12 @@ async function main() {
       },
     ],
     [
+      FieldType.TEXT,
+      {
+        label: `Top 3 shadow practices (not aligned with (re)connecting)`,
+      },
+    ],
+    [
       FieldType.NUMBER,
       {
         label: `Rate alignment on value "(re)connecting"`,
@@ -92,6 +98,12 @@ async function main() {
       FieldType.TEXT,
       {
         label: `Top 3 best practices (aligned with participation)`,
+      },
+    ],
+    [
+      FieldType.TEXT,
+      {
+        label: `Top 3 shadow practices (not aligned with participation)`,
       },
     ],
     [
@@ -116,6 +128,12 @@ async function main() {
       },
     ],
     [
+      FieldType.TEXT,
+      {
+        label: "Top 3 shadow practices (not aligned with regeneration)",
+      },
+    ],
+    [
       FieldType.NUMBER,
       {
         label: `Rate alignment on value "regeneration"`,
@@ -137,6 +155,12 @@ async function main() {
       },
     ],
     [
+      FieldType.TEXT,
+      {
+        label: `Top 3 shadow practices (not aligned with diversity)`,
+      },
+    ],
+    [
       FieldType.NUMBER,
       {
         label: `Rate alignment on value "diversity"`,
@@ -155,6 +179,12 @@ async function main() {
       FieldType.TEXT,
       {
         label: `Top 3 best practices (aligned with cross-pollination)`,
+      },
+    ],
+    [
+      FieldType.TEXT,
+      {
+        label: `Top 3 shadow practices (not aligned with cross-pollination)`,
       },
     ],
     [
