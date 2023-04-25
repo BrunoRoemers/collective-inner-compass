@@ -26,6 +26,17 @@ export const numberFieldParams = z.object({
 
 export type NumberFieldParams = z.infer<typeof numberFieldParams>;
 
+//////////////////////
+// Input Validation //
+//////////////////////
+
+export const numberFieldInput = (params: NumberFieldParams) =>
+  z
+    .union([z.string().nonempty({ message: "Required" }), z.number()])
+    .pipe(z.coerce.number().min(params.min).max(params.max));
+
+export type NumberFieldInput = z.infer<ReturnType<typeof numberFieldInput>>;
+
 ///////////////////
 // Merge Options //
 ///////////////////

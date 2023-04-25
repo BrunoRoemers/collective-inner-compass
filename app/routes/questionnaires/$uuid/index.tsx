@@ -8,12 +8,14 @@ import zErrorsParser from "~/utils/zErrorsParser";
 import { FieldType } from "@prisma/client";
 import assertUnreachable from "~/utils/assertUnreachable";
 import {
+  numberFieldInput,
   parseNumberField,
   parseNumberFieldWithZeroOrOneAnswers,
 } from "~/schemas/fields/numberField";
 import {
   parseTextField,
   parseTextFieldWithZeroOrOneAnswers,
+  textFieldInput,
 } from "~/schemas/fields/textField";
 import { parseExplainerField } from "~/schemas/fields/explainerField";
 import numberField from "~/components/fields/NumberField";
@@ -109,9 +111,9 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
         const type = field.type;
         switch (type) {
           case FieldType.NUMBER:
-            return [field.id, numberField.getInputParser(field.params)]; // TODO move to schema?
+            return [field.id, numberFieldInput(field.params)];
           case FieldType.TEXT:
-            return [field.id, textField.getInputParser(field.params)]; // TODO move to schema?
+            return [field.id, textFieldInput(field.params)];
           default:
             return assertUnreachable(type);
         }

@@ -24,6 +24,15 @@ export const textFieldParams = z.object({
 
 export type TextFieldParams = z.infer<typeof textFieldParams>;
 
+//////////////////////
+// Input Validation //
+//////////////////////
+
+export const textFieldInput = (params: TextFieldParams) =>
+  z.string().nonempty({ message: "Required" });
+
+export type TextFieldInput = z.infer<ReturnType<typeof textFieldInput>>;
+
 ///////////////////
 // Merge Options //
 ///////////////////
