@@ -39,7 +39,7 @@ export const includeAnswers = (params: NumberFieldParams) =>
     answers: z.array(numberAnswer(params)),
   });
 
-export const includeZeroOrOneAnswer = (params: NumberFieldParams) =>
+export const includeZeroOrOneAnswers = (params: NumberFieldParams) =>
   z.object({
     answers: z.array(numberAnswer(params)).min(0).max(1),
   });
@@ -61,4 +61,33 @@ export const keepFirstAnswer = <T extends { answers: NumberAnswer[] }>(
     ...rest,
     answer: answers.shift(),
   };
+};
+
+/////////////////////////
+// Common Combinations //
+/////////////////////////
+
+export const parseNumberField = (field: unknown & { params: unknown }) => {
+  return numberField.merge(includeParams).parse(field);
+};
+
+export const parseNumberFieldWithAnswer = (
+  field: unknown & { params: unknown }
+) => {
+  const params = numberFieldParams.parse(field.params);
+  return numberField
+    .merge(includeParams)
+    .merge(includeAnswer(params))
+    .parse(field);
+};
+
+export const parseNumberFieldWithZeroOrOneAnswers = (
+  field: unknown & { params: unknown }
+) => {
+  const params = numberFieldParams.parse(field.params);
+  return numberField
+    .merge(includeParams)
+    .merge(includeZeroOrOneAnswers(params))
+    .transform(keepFirstAnswer)
+    .parse(field);
 };

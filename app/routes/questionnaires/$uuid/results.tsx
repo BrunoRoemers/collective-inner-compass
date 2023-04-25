@@ -1,3 +1,4 @@
+import { FieldType } from "@prisma/client";
 import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
@@ -10,11 +11,8 @@ import {
 import { Radar } from "react-chartjs-2";
 import { z } from "zod";
 import {
-  includeParams,
-  includeZeroOrOneAnswer,
-  keepFirstAnswer,
-  numberField,
-  numberFieldParams,
+  parseNumberFieldWithAnswer,
+  parseNumberFieldWithZeroOrOneAnswers,
 } from "~/schemas/fields/numberField";
 import { db } from "~/utils/db.server";
 
@@ -30,7 +28,7 @@ const getNumericResultsFromQuestionnaire = async (
   questionnaireId: string
 ) => {
   const rawFields = await db.field.findMany({
-    where: { questionnaireId, type: "NUMBER" },
+    where: { questionnaireId, type: FieldType.NUMBER },
     select: {
       id: true,
       type: true,
@@ -43,14 +41,9 @@ const getNumericResultsFromQuestionnaire = async (
     },
   });
 
-  const parsedFields = rawFields.map((field) => {
-    const params = numberFieldParams.parse(field.params);
-    return numberField
-      .merge(includeParams)
-      .merge(includeZeroOrOneAnswer(params))
-      .transform(keepFirstAnswer)
-      .parse(field);
-  });
+  const parsedFields = rawFields.map((field) =>
+    parseNumberFieldWithZeroOrOneAnswers(field)
+  );
 
   return parsedFields;
 };
@@ -65,7 +58,10 @@ export const loader = async ({ params }: DataFunctionArgs) => {
 };
 
 export default () => {
-  const { fields } = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
+  const fields = loaderData.fields.map((field) =>
+    parseNumberFieldWithAnswer(field)
+  );
 
   const data = {
     labels: fields.map((field) => field.params.label),

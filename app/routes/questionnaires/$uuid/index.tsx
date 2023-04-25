@@ -4,22 +4,32 @@ import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import Field from "~/components/Field";
-import numberField from "~/components/fields/NumberField";
 import zErrorsParser from "~/utils/zErrorsParser";
 import { FieldType } from "@prisma/client";
+import assertUnreachable from "~/utils/assertUnreachable";
+import {
+  parseNumberField,
+  parseNumberFieldWithZeroOrOneAnswers,
+} from "~/schemas/fields/numberField";
+import {
+  parseTextField,
+  parseTextFieldWithZeroOrOneAnswers,
+} from "~/schemas/fields/textField";
+import { parseExplainerField } from "~/schemas/fields/explainerField";
+import numberField from "~/components/fields/NumberField";
 import textField from "~/components/fields/TextField";
+import explainerField from "~/components/fields/ExplainerField";
 
 const getUserId = async () => {
   const firstUser = await db.user.findFirstOrThrow();
   return firstUser.id;
 };
 
-const getFieldsAndAnswersOfQuestionnaire = (
+const getFieldsAndAnswersOfQuestionnaire = async (
   userId: string,
   questionnaireId: string
-) =>
-  db.field.findMany({
+) => {
+  const rawFields = await db.field.findMany({
     where: { questionnaireId },
     select: {
       id: true,
@@ -33,6 +43,22 @@ const getFieldsAndAnswersOfQuestionnaire = (
     },
   });
 
+  const parsedFields = rawFields.map((field) => {
+    switch (field.type) {
+      case FieldType.NUMBER:
+        return parseNumberFieldWithZeroOrOneAnswers(field);
+      case FieldType.TEXT:
+        return parseTextFieldWithZeroOrOneAnswers(field);
+      case FieldType.EXPLAINER:
+        return parseExplainerField(field);
+      default:
+        return assertUnreachable(field.type);
+    }
+  });
+
+  return parsedFields;
+};
+
 export const loader = async ({ params }: DataFunctionArgs) => {
   const userId = await getUserId();
   const questionnaireId = z.string().uuid().parse(params.uuid);
@@ -43,35 +69,53 @@ export const loader = async ({ params }: DataFunctionArgs) => {
   });
 };
 
+const getUpdatableFields = async (userId: string, questionnaireId: string) => {
+  const rawFields = await db.field.findMany({
+    where: { questionnaireId, type: { notIn: [FieldType.EXPLAINER] } },
+    select: {
+      id: true,
+      type: true,
+      params: true,
+    },
+  });
+
+  const parsedFields = rawFields.map((field) => {
+    switch (field.type) {
+      case FieldType.NUMBER:
+        return parseNumberField(field);
+      case FieldType.TEXT:
+        return parseTextField(field);
+      case FieldType.EXPLAINER:
+        throw new Error("explainer fields are not updatable");
+      default:
+        return assertUnreachable(field.type);
+    }
+  });
+
+  return parsedFields;
+};
+
 export const action = async ({ params, request }: DataFunctionArgs) => {
   // inputs
   const userId = await getUserId();
   const questionnaireId = z.string().uuid().parse(params.uuid);
-  const fields = await getFieldsAndAnswersOfQuestionnaire(
-    userId,
-    questionnaireId
-  );
+  const fields = await getUpdatableFields(userId, questionnaireId);
   const formData = await request.formData();
 
   // build parser
   const parser = z.object(
     Object.fromEntries(
-      fields
-        .filter((field) => field.type != FieldType.EXPLAINER)
-        .map((field) => {
-          switch (field.type) {
-            case FieldType.NUMBER:
-              const numberParams = numberField.paramsParser.parse(field.params);
-              return [field.id, numberField.getInputParser(numberParams)];
-            case FieldType.TEXT:
-              const textParams = textField.paramsParser.parse(field.params);
-              return [field.id, textField.getInputParser(textParams)];
-            default:
-              throw new Error(
-                `type '${field.type}' of field '${field.id}' is not supported`
-              );
-          }
-        })
+      fields.map((field) => {
+        const type = field.type;
+        switch (type) {
+          case FieldType.NUMBER:
+            return [field.id, numberField.getInputParser(field.params)]; // TODO move to schema?
+          case FieldType.TEXT:
+            return [field.id, textField.getInputParser(field.params)]; // TODO move to schema?
+          default:
+            return assertUnreachable(type);
+        }
+      })
     )
   );
 
@@ -124,13 +168,41 @@ export default () => {
   }
 
   const formRows = fields.map((field) => {
-    return (
-      <Field
-        key={field.id}
-        field={field}
-        errors={errors?.fieldErrors?.[field.id]}
-      />
-    );
+    const type = field.type;
+    const rowErrors = errors?.fieldErrors?.[field.id];
+
+    switch (type) {
+      case FieldType.NUMBER:
+        return (
+          <numberField.Element
+            key={field.id}
+            id={field.id}
+            params={field.params}
+            defaultValue={field.answer?.content.value}
+            errors={rowErrors}
+          ></numberField.Element>
+        );
+      case FieldType.TEXT:
+        return (
+          <textField.Element
+            key={field.id}
+            id={field.id}
+            params={field.params}
+            defaultValue={field.answer?.content.value}
+            errors={rowErrors}
+          ></textField.Element>
+        );
+      case FieldType.EXPLAINER:
+        return (
+          <explainerField.Element
+            key={field.id}
+            id={field.id}
+            params={field.params}
+          ></explainerField.Element>
+        );
+      default:
+        return assertUnreachable(type);
+    }
   });
 
   return (
