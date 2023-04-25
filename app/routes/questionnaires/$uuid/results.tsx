@@ -64,7 +64,7 @@ export default () => {
   );
 
   const data = {
-    labels: fields.map((field) => field.params.label),
+    labels: fields.map((field) => field.params.chartLabel),
     datasets: [
       {
         label: "Results",

@@ -20,6 +20,7 @@ export type NumberField = z.infer<typeof numberField>;
 
 export const numberFieldParams = z.object({
   label: z.string(),
+  chartLabel: z.string(),
   min: z.number(),
   max: z.number(),
 });

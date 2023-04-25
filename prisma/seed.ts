@@ -83,6 +83,7 @@ async function main() {
       FieldType.NUMBER,
       {
         label: `Rate alignment on value "(re)connecting"`,
+        chartLabel: `(re)connecting`,
         min: 0,
         max: 100,
       },
@@ -110,6 +111,7 @@ async function main() {
       FieldType.NUMBER,
       {
         label: `Rate alignment on value "participation"`,
+        chartLabel: `participation`,
         min: 0,
         max: 100,
       },
@@ -137,6 +139,7 @@ async function main() {
       FieldType.NUMBER,
       {
         label: `Rate alignment on value "regeneration"`,
+        chartLabel: `regeneration`,
         min: 0,
         max: 100,
       },
@@ -164,6 +167,7 @@ async function main() {
       FieldType.NUMBER,
       {
         label: `Rate alignment on value "diversity"`,
+        chartLabel: `diversity`,
         min: 0,
         max: 100,
       },
@@ -191,6 +195,7 @@ async function main() {
       FieldType.NUMBER,
       {
         label: `Rate alignment on value "cross-pollination"`,
+        chartLabel: `cross-pollination`,
         min: 0,
         max: 100,
       },
@@ -221,6 +226,7 @@ async function main() {
       FieldType.NUMBER,
       {
         label: `Rate alignment on value "openness"`,
+        chartLabel: `openness`,
         min: 0,
         max: 100,
       },
@@ -229,6 +235,7 @@ async function main() {
       FieldType.NUMBER,
       {
         label: `Rate alignment on value "passion"`,
+        chartLabel: `passion`,
         min: 0,
         max: 100,
       },
@@ -237,6 +244,7 @@ async function main() {
       FieldType.NUMBER,
       {
         label: `Rate alignment on value "collaboration"`,
+        chartLabel: `collaboration`,
         min: 0,
         max: 100,
       },
