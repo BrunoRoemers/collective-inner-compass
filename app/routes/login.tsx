@@ -5,8 +5,9 @@ import { Form, useActionData } from "@remix-run/react";
 import FormRow from "~/components/FormRow";
 import { zErrors } from "~/schemas/zErrors";
 import { db } from "~/utils/db.server";
-import randomSecureToken from "~/utils/randomSecureToken.server";
+import getRandomSecureToken from "~/utils/getRandomSecureToken.server";
 import bcrypt from "bcryptjs";
+import config from "~/config";
 
 export const action = async ({ request }: DataFunctionArgs) => {
   const formData = await request.formData();
@@ -50,9 +51,9 @@ export const action = async ({ request }: DataFunctionArgs) => {
   });
 
   // generate a secure token
-  const token = randomSecureToken(32);
-  const tokenHash = await bcrypt.hash(token, 10);
-  await db.authToken.create({
+  const token = getRandomSecureToken(config.tokenSizeInBytes);
+  const tokenHash = await bcrypt.hash(token, config.hashSaltLength);
+  const tokenRow = await db.authToken.create({
     data: {
       userId: user.id,
       hash: tokenHash,
@@ -61,7 +62,10 @@ export const action = async ({ request }: DataFunctionArgs) => {
 
   // TEMP as soon as sending emails is implemented, DO NOT RETURN THE TOKEN TO THE CLIENT
   return json({
-    doNotSendMeToTheClient: token,
+    doNotSendMeToTheClient: {
+      tokenId: tokenRow.id,
+      tokenValue: token,
+    },
   });
 };
 
@@ -69,7 +73,12 @@ export default () => {
   const actionData = z
     .union([
       zErrors,
-      z.object({ doNotSendMeToTheClient: z.string() }),
+      z.object({
+        doNotSendMeToTheClient: z.object({
+          tokenId: z.string(),
+          tokenValue: z.string(),
+        }),
+      }),
       z.undefined(),
     ])
     .parse(useActionData());
@@ -89,6 +98,8 @@ export default () => {
     );
   }
 
+  const link = `/tokens/${actionData.doNotSendMeToTheClient.tokenId}?t=${actionData.doNotSendMeToTheClient.tokenValue}`;
+
   return (
     <div className="p-2">
       <h1>Welcome!</h1>
@@ -98,11 +109,10 @@ export default () => {
           Warning: email functionality not yet implemented!
         </p>
         <p>
-          You can find the single-use login token below. Consider your account
+          You can find the single-use login link below. Consider your account
           accessible by anyone on the internet!
         </p>
-        token:{" "}
-        <span className="italic">{actionData.doNotSendMeToTheClient}</span>
+        <a href={link}>{link}</a>
       </div>
     </div>
   );
