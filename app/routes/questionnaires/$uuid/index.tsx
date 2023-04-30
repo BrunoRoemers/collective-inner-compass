@@ -4,7 +4,6 @@ import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import zErrorsParser from "~/utils/zErrorsParser";
 import { FieldType } from "@prisma/client";
 import assertUnreachable from "~/utils/assertUnreachable";
 import { numberFieldInput } from "~/schemas/fields/numberField";
@@ -16,6 +15,7 @@ import {
   parseAnyFieldWithZeroOrOneAnswers,
   updatableField,
 } from "~/schemas/fields/anyField";
+import { zErrors } from "~/schemas/zErrors";
 
 const getUserId = async () => {
   const firstUser = await db.user.findFirstOrThrow();
@@ -100,13 +100,13 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
   );
 
   // build data structure
-  const data = Object.fromEntries(
+  const rawData = Object.fromEntries(
     fields.map((field): [string, FormDataEntryValue | null] => {
       return [field.id, formData.get(field.id)];
     })
   );
 
-  const result = parser.safeParse(data);
+  const result = parser.safeParse(rawData);
 
   // handle errors
   if (!result.success) {
@@ -141,7 +141,7 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
 
 export default () => {
   const { uuid, fields } = useLoaderData<typeof loader>();
-  const errors = zErrorsParser.parse(useActionData());
+  const errors = zErrors.optional().parse(useActionData());
 
   if (fields.length < 1) {
     throw new Error(`questionnaire '${uuid}' does not have any fields`);
