@@ -5,31 +5,31 @@ import { z } from "zod";
 /////////////////////
 
 import { FieldType } from "@prisma/client";
-import { field } from "./field";
+import { zField } from "./field";
 
-export const explainerField = field.extend({
+export const zExplainerField = zField.extend({
   type: z.literal(FieldType.EXPLAINER),
 });
 
-export type ExplainerField = z.infer<typeof explainerField>;
+export type ExplainerField = z.infer<typeof zExplainerField>;
 
 ///////////////////////
 // Params Definition //
 ///////////////////////
 
-export const explainerFieldParams = z.object({
+export const zExplainerFieldParams = z.object({
   title: z.string(),
   text: z.string(),
 });
 
-export type ExplainerFieldParams = z.infer<typeof explainerFieldParams>;
+export type ExplainerFieldParams = z.infer<typeof zExplainerFieldParams>;
 
 ///////////////////
 // Merge Options //
 ///////////////////
 
-export const includeParams = z.object({
-  params: explainerFieldParams,
+export const zIncludeParams = z.object({
+  params: zExplainerFieldParams,
 });
 
 /////////////////////////
@@ -37,5 +37,5 @@ export const includeParams = z.object({
 /////////////////////////
 
 export const parseExplainerField = (field: unknown & { params: unknown }) => {
-  return explainerField.merge(includeParams).parse(field);
+  return zExplainerField.merge(zIncludeParams).parse(field);
 };

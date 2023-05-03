@@ -6,17 +6,17 @@ import { redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { FieldType } from "@prisma/client";
 import assertUnreachable from "~/utils/assertUnreachable";
-import { numberFieldInput } from "~/schemas/fields/numberField";
-import { textFieldInput } from "~/schemas/fields/textField";
+import { zNumberFieldInput } from "~/schemas/fields/numberField";
+import { zTextFieldInput } from "~/schemas/fields/textField";
 import NumberField from "~/components/fields/NumberField";
 import TextField from "~/components/fields/TextField";
 import ExplainerField from "~/components/fields/ExplainerField";
 import {
   parseAnyFieldWithZeroOrOneAnswers,
-  updatableField,
+  zUpdatableField,
 } from "~/schemas/fields/anyField";
-import { zErrors } from "~/schemas/zErrors";
-import { requireUserId } from "~/utils/session.server";
+import { zErrors } from "~/schemas/errors";
+import { requireUserId } from "~/models/session.server";
 
 const getFieldsAndAnswersOfQuestionnaire = async (
   userId: string,
@@ -66,7 +66,7 @@ const getUpdatableFields = async (userId: string, questionnaireId: string) => {
     },
   });
 
-  const parsedFields = z.array(updatableField).parse(rawFields);
+  const parsedFields = z.array(zUpdatableField).parse(rawFields);
 
   return parsedFields;
 };
@@ -85,9 +85,9 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
         const type = field.type;
         switch (type) {
           case FieldType.NUMBER:
-            return [field.id, numberFieldInput(field.params)];
+            return [field.id, zNumberFieldInput(field.params)];
           case FieldType.TEXT:
-            return [field.id, textFieldInput(field.params)];
+            return [field.id, zTextFieldInput(field.params)];
           default:
             return assertUnreachable(type);
         }

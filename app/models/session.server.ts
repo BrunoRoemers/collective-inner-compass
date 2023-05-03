@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Session } from "@remix-run/node";
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
+import type { User } from "@prisma/client";
 
 const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {
@@ -18,29 +19,27 @@ interface SessionFlashData {}
 //       - a session value is set
 //       - a session value is unset
 //       - a flash is read
-const cookieStorage = createCookieSessionStorage<SessionData, SessionFlashData>(
-  {
-    cookie: {
-      // NOTE: defence in depth: the prefix may prevent session fixation in modern browsers
-      // FIXME: the prefix prevents the cookie from being stored during development on http://localhost:3000 (not https)
-      name:
-        process.env.NODE_ENV === "production"
-          ? "__Host-CIC_session"
-          : "CIC_session",
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 2, // 2 days, in seconds
-      secrets: [sessionSecret],
-    },
-  }
-);
+const storage = createCookieSessionStorage<SessionData, SessionFlashData>({
+  cookie: {
+    // NOTE: defence in depth: the prefix may prevent session fixation in modern browsers
+    // NOTE: the prefix prevents the cookie from being stored during development on http://localhost:3000 (not https)
+    name:
+      process.env.NODE_ENV === "production"
+        ? "__Host-CIC_session"
+        : "CIC_session",
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 2, // 2 days, in seconds
+    secrets: [sessionSecret],
+  },
+});
 
 const getSession = (
   request: Request
 ): Promise<Session<SessionData, SessionFlashData>> => {
-  return cookieStorage.getSession(request.headers.get("Cookie"));
+  return storage.getSession(request.headers.get("Cookie"));
 };
 
 export const getUserId = async (
@@ -59,14 +58,13 @@ export const requireUserId = async (request: Request): Promise<string> => {
   return userId;
 };
 
-export const createSession = async (rawUserId: string) => {
-  const userId = z.string().uuid().parse(rawUserId);
-  const session = await cookieStorage.getSession();
-  session.set("userId", userId);
+export const createSession = async (user: User) => {
+  const session = await storage.getSession();
+  session.set("userId", user.id);
   // TODO dynamic redirect
   return redirect("/", {
     headers: {
-      "Set-Cookie": await cookieStorage.commitSession(session),
+      "Set-Cookie": await storage.commitSession(session),
     },
   });
 };

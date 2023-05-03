@@ -15,7 +15,7 @@ import {
   parseNumberFieldWithZeroOrOneAnswers,
 } from "~/schemas/fields/numberField";
 import { db } from "~/utils/db.server";
-import { requireUserId } from "~/utils/session.server";
+import { requireUserId } from "~/models/session.server";
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement);
 

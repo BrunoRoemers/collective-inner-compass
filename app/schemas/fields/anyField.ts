@@ -1,36 +1,36 @@
 import { z } from "zod";
 import {
-  includeParams as includeNumberParams,
-  numberField,
+  zIncludeParams as includeNumberParams,
+  zNumberField,
   parseNumberFieldWithZeroOrOneAnswers,
 } from "./numberField";
 import {
-  includeParams as includeTextParams,
+  zIncludeParams as includeTextParams,
   parseTextFieldWithZeroOrOneAnswers,
-  textField,
+  zTextField,
 } from "./textField";
 import {
-  explainerField,
-  includeParams as includeExplainerParams,
+  zExplainerField,
+  zIncludeParams as includeExplainerParams,
   parseExplainerField,
 } from "./explainerField";
 import { FieldType } from "@prisma/client";
 import assertUnreachable from "~/utils/assertUnreachable";
 
-export const anyField = z.discriminatedUnion("type", [
-  numberField.merge(includeNumberParams),
-  textField.merge(includeTextParams),
-  explainerField.merge(includeExplainerParams),
+export const zAnyField = z.discriminatedUnion("type", [
+  zNumberField.merge(includeNumberParams),
+  zTextField.merge(includeTextParams),
+  zExplainerField.merge(includeExplainerParams),
 ]);
 
-export type AnyField = z.infer<typeof anyField>;
+export type AnyField = z.infer<typeof zAnyField>;
 
-export const updatableField = z.discriminatedUnion("type", [
-  numberField.merge(includeNumberParams),
-  textField.merge(includeTextParams),
+export const zUpdatableField = z.discriminatedUnion("type", [
+  zNumberField.merge(includeNumberParams),
+  zTextField.merge(includeTextParams),
 ]);
 
-export type UpdatableField = z.infer<typeof updatableField>;
+export type UpdatableField = z.infer<typeof zUpdatableField>;
 
 export const parseAnyFieldWithZeroOrOneAnswers = (
   field: unknown & { type: FieldType; params: unknown }

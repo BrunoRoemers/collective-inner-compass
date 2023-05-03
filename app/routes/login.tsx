@@ -3,11 +3,9 @@ import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
 import FormRow from "~/components/FormRow";
-import { zErrors } from "~/schemas/zErrors";
-import { db } from "~/utils/db.server";
-import getRandomSecureToken from "~/utils/getRandomSecureToken.server";
-import bcrypt from "bcryptjs";
-import config from "~/config";
+import { zErrors } from "~/schemas/errors";
+import { getOrCreateUser } from "~/models/user.server";
+import { createToken, consumeExistingTokens } from "~/models/token.server";
 
 export const action = async ({ request }: DataFunctionArgs) => {
   const formData = await request.formData();
@@ -27,43 +25,17 @@ export const action = async ({ request }: DataFunctionArgs) => {
     return json(errors, { status: 400 });
   }
 
-  // fetch/insert user
-  const user = await db.user.upsert({
-    where: {
-      email: result.data.email,
-    },
-    update: {},
-    create: {
-      email: result.data.email,
-    },
-  });
+  const user = await getOrCreateUser(result.data.email);
 
   // TODO rate-limit creation of tokens
 
-  // invalidate any existing tokens for the user
-  await db.authToken.updateMany({
-    where: {
-      userId: user.id,
-    },
-    data: {
-      invalidatedAt: new Date(),
-    },
-  });
-
-  // generate a secure token
-  const token = getRandomSecureToken(config.tokenSizeInBytes);
-  const tokenHash = await bcrypt.hash(token, config.hashSaltLength);
-  const tokenRow = await db.authToken.create({
-    data: {
-      userId: user.id,
-      hash: tokenHash,
-    },
-  });
+  await consumeExistingTokens(user);
+  const token = await createToken(user);
 
   // TEMP as soon as sending emails is implemented, DO NOT RETURN THE TOKEN TO THE CLIENT
   return json({
     doNotSendMeToTheClient: {
-      tokenId: tokenRow.id,
+      tokenId: token.id,
       tokenValue: token,
     },
   });

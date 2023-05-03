@@ -1,59 +1,59 @@
 import { z } from "zod";
-import { field } from "./field";
+import { zField } from "./field";
 import { FieldType } from "@prisma/client";
 import type { TextAnswer } from "../answers/textAnswer";
-import { textAnswer } from "../answers/textAnswer";
+import { zTextAnswer } from "../answers/textAnswer";
 
 /////////////////////
 // Base Definition //
 /////////////////////
 
-export const textField = field.extend({
+export const zTextField = zField.extend({
   type: z.literal(FieldType.TEXT),
 });
 
-export type TextField = z.infer<typeof textField>;
+export type TextField = z.infer<typeof zTextField>;
 
 ///////////////////////
 // Params Definition //
 ///////////////////////
 
-export const textFieldParams = z.object({
+export const zTextFieldParams = z.object({
   label: z.string(),
 });
 
-export type TextFieldParams = z.infer<typeof textFieldParams>;
+export type TextFieldParams = z.infer<typeof zTextFieldParams>;
 
 //////////////////////
 // Input Validation //
 //////////////////////
 
-export const textFieldInput = (params: TextFieldParams) =>
+export const zTextFieldInput = (params: TextFieldParams) =>
   z.string().nonempty({ message: "Required" });
 
-export type TextFieldInput = z.infer<ReturnType<typeof textFieldInput>>;
+export type TextFieldInput = z.infer<ReturnType<typeof zTextFieldInput>>;
 
 ///////////////////
 // Merge Options //
 ///////////////////
 
-export const includeParams = z.object({
-  params: textFieldParams,
+export const zIncludeParams = z.object({
+  params: zTextFieldParams,
 });
 
-export const includeAnswers = (params: TextFieldParams) =>
+export const zIncludeAnswers = (params: TextFieldParams) =>
   z.object({
-    answers: z.array(textAnswer(params)),
+    answers: z.array(zTextAnswer(params)),
   });
 
-export const includeZeroOrOneAnswers = (params: TextFieldParams) =>
+export const zIncludeZeroOrOneAnswers = (params: TextFieldParams) =>
   z.object({
-    answers: z.array(textAnswer(params)).min(0).max(1),
+    answers: z.array(zTextAnswer(params)).min(0).max(1),
   });
 
-export const includeAnswer = (params: TextFieldParams) =>
+export const zIncludeAnswer = (params: TextFieldParams) =>
   z.object({
-    answer: textAnswer(params).optional(),
+    answer: zTextAnswer(params).optional(),
   });
 
 ///////////////////////
@@ -75,26 +75,26 @@ export const keepFirstAnswer = <T extends { answers: TextAnswer[] }>(
 /////////////////////////
 
 export const parseTextField = (field: unknown & { params: unknown }) => {
-  return textField.merge(includeParams).parse(field);
+  return zTextField.merge(zIncludeParams).parse(field);
 };
 
 export const parseTextFieldWithAnswer = (
   field: unknown & { params: unknown }
 ) => {
-  const params = textFieldParams.parse(field.params);
-  return textField
-    .merge(includeParams)
-    .merge(includeAnswer(params))
+  const params = zTextFieldParams.parse(field.params);
+  return zTextField
+    .merge(zIncludeParams)
+    .merge(zIncludeAnswer(params))
     .parse(field);
 };
 
 export const parseTextFieldWithZeroOrOneAnswers = (
   field: unknown & { params: unknown }
 ) => {
-  const params = textFieldParams.parse(field.params);
-  return textField
-    .merge(includeParams)
-    .merge(includeZeroOrOneAnswers(params))
+  const params = zTextFieldParams.parse(field.params);
+  return zTextField
+    .merge(zIncludeParams)
+    .merge(zIncludeZeroOrOneAnswers(params))
     .transform(keepFirstAnswer)
     .parse(field);
 };

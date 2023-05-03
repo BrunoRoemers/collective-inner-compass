@@ -1,64 +1,64 @@
 import { FieldType } from "@prisma/client";
 import { z } from "zod";
-import { field } from "./field";
+import { zField } from "./field";
 import type { NumberAnswer } from "../answers/numberAnswer";
-import { numberAnswer } from "../answers/numberAnswer";
+import { zNumberAnswer } from "../answers/numberAnswer";
 
 /////////////////////
 // Base Definition //
 /////////////////////
 
-export const numberField = field.extend({
+export const zNumberField = zField.extend({
   type: z.literal(FieldType.NUMBER),
 });
 
-export type NumberField = z.infer<typeof numberField>;
+export type NumberField = z.infer<typeof zNumberField>;
 
 ///////////////////////
 // Params Definition //
 ///////////////////////
 
-export const numberFieldParams = z.object({
+export const zNumberFieldParams = z.object({
   label: z.string(),
   chartLabel: z.string(),
   min: z.number(),
   max: z.number(),
 });
 
-export type NumberFieldParams = z.infer<typeof numberFieldParams>;
+export type NumberFieldParams = z.infer<typeof zNumberFieldParams>;
 
 //////////////////////
 // Input Validation //
 //////////////////////
 
-export const numberFieldInput = (params: NumberFieldParams) =>
+export const zNumberFieldInput = (params: NumberFieldParams) =>
   z
     .union([z.string().nonempty({ message: "Required" }), z.number()])
     .pipe(z.coerce.number().min(params.min).max(params.max));
 
-export type NumberFieldInput = z.infer<ReturnType<typeof numberFieldInput>>;
+export type NumberFieldInput = z.infer<ReturnType<typeof zNumberFieldInput>>;
 
 ///////////////////
 // Merge Options //
 ///////////////////
 
-export const includeParams = z.object({
-  params: numberFieldParams,
+export const zIncludeParams = z.object({
+  params: zNumberFieldParams,
 });
 
-export const includeAnswers = (params: NumberFieldParams) =>
+export const zIncludeAnswers = (params: NumberFieldParams) =>
   z.object({
-    answers: z.array(numberAnswer(params)),
+    answers: z.array(zNumberAnswer(params)),
   });
 
-export const includeZeroOrOneAnswers = (params: NumberFieldParams) =>
+export const zIncludeZeroOrOneAnswers = (params: NumberFieldParams) =>
   z.object({
-    answers: z.array(numberAnswer(params)).min(0).max(1),
+    answers: z.array(zNumberAnswer(params)).min(0).max(1),
   });
 
-export const includeAnswer = (params: NumberFieldParams) =>
+export const zIncludeAnswer = (params: NumberFieldParams) =>
   z.object({
-    answer: numberAnswer(params).optional(),
+    answer: zNumberAnswer(params).optional(),
   });
 
 ///////////////////////
@@ -80,26 +80,26 @@ export const keepFirstAnswer = <T extends { answers: NumberAnswer[] }>(
 /////////////////////////
 
 export const parseNumberField = (field: unknown & { params: unknown }) => {
-  return numberField.merge(includeParams).parse(field);
+  return zNumberField.merge(zIncludeParams).parse(field);
 };
 
 export const parseNumberFieldWithAnswer = (
   field: unknown & { params: unknown }
 ) => {
-  const params = numberFieldParams.parse(field.params);
-  return numberField
-    .merge(includeParams)
-    .merge(includeAnswer(params))
+  const params = zNumberFieldParams.parse(field.params);
+  return zNumberField
+    .merge(zIncludeParams)
+    .merge(zIncludeAnswer(params))
     .parse(field);
 };
 
 export const parseNumberFieldWithZeroOrOneAnswers = (
   field: unknown & { params: unknown }
 ) => {
-  const params = numberFieldParams.parse(field.params);
-  return numberField
-    .merge(includeParams)
-    .merge(includeZeroOrOneAnswers(params))
+  const params = zNumberFieldParams.parse(field.params);
+  return zNumberField
+    .merge(zIncludeParams)
+    .merge(zIncludeZeroOrOneAnswers(params))
     .transform(keepFirstAnswer)
     .parse(field);
 };

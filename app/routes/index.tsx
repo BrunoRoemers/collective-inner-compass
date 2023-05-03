@@ -3,7 +3,7 @@ import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { db } from "~/utils/db.server";
-import { getUserId } from "~/utils/session.server";
+import { getUserId } from "~/models/session.server";
 
 const response = z.object({
   user: z.union([
