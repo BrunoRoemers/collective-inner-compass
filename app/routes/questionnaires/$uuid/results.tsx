@@ -15,13 +15,9 @@ import {
   parseNumberFieldWithZeroOrOneAnswers,
 } from "~/schemas/fields/numberField";
 import { db } from "~/utils/db.server";
+import { requireUserId } from "~/utils/session.server";
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement);
-
-const getUserId = async () => {
-  const firstUser = await db.user.findFirstOrThrow();
-  return firstUser.id;
-};
 
 const getNumericResultsFromQuestionnaire = async (
   userId: string,
@@ -48,8 +44,8 @@ const getNumericResultsFromQuestionnaire = async (
   return parsedFields;
 };
 
-export const loader = async ({ params }: DataFunctionArgs) => {
-  const userId = await getUserId();
+export const loader = async ({ params, request }: DataFunctionArgs) => {
+  const userId = await requireUserId(request);
   const questionnaireId = z.string().uuid().parse(params.uuid);
 
   return json({

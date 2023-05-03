@@ -16,11 +16,7 @@ import {
   updatableField,
 } from "~/schemas/fields/anyField";
 import { zErrors } from "~/schemas/zErrors";
-
-const getUserId = async () => {
-  const firstUser = await db.user.findFirstOrThrow();
-  return firstUser.id;
-};
+import { requireUserId } from "~/utils/session.server";
 
 const getFieldsAndAnswersOfQuestionnaire = async (
   userId: string,
@@ -50,8 +46,8 @@ const getFieldsAndAnswersOfQuestionnaire = async (
   return parsedFields;
 };
 
-export const loader = async ({ params }: DataFunctionArgs) => {
-  const userId = await getUserId();
+export const loader = async ({ params, request }: DataFunctionArgs) => {
+  const userId = await requireUserId(request);
   const questionnaireId = z.string().uuid().parse(params.uuid);
 
   return json({
@@ -77,7 +73,7 @@ const getUpdatableFields = async (userId: string, questionnaireId: string) => {
 
 export const action = async ({ params, request }: DataFunctionArgs) => {
   // inputs
-  const userId = await getUserId();
+  const userId = await requireUserId(request);
   const questionnaireId = z.string().uuid().parse(params.uuid);
   const fields = await getUpdatableFields(userId, questionnaireId);
   const formData = await request.formData();

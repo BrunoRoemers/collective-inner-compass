@@ -6,6 +6,7 @@ import getSearchParam from "~/utils/getSearchParam";
 import { db } from "~/utils/db.server";
 import isTokenExpired from "~/utils/isTokenExpired";
 import bcrypt from "bcryptjs";
+import { createSession } from "~/utils/session.server";
 
 const tokenNotValidResponse = () =>
   json(
@@ -40,6 +41,7 @@ export const loader = async ({ params, request }: DataFunctionArgs) => {
   // verify that token has not expired
   if (isTokenExpired(tokenRow.createdAt)) {
     console.log(`token ${tokenId} is expired`);
+    // TODO update tokens in db
     return tokenNotValidResponse();
   }
 
@@ -52,10 +54,5 @@ export const loader = async ({ params, request }: DataFunctionArgs) => {
 
   // TODO set invalidatedAt of the token so it cannot be reused
 
-  // TODO set the cookie
-
-  // return redirect("/");
-  return json({
-    success: true,
-  });
+  return createSession(tokenRow.userId);
 };

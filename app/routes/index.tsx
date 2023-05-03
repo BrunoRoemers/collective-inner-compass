@@ -10,6 +10,7 @@ export default function Index() {
           </Link>
         </li>
       </ul>
+      TODO login / logout here
     </div>
   );
 }
