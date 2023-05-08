@@ -1,12 +1,9 @@
-import { z } from "zod";
 import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { FieldType } from "@prisma/client";
 import assertUnreachable from "~/utils/assertUnreachable";
-import { zNumberFieldInput } from "~/schemas/fields/numberField";
-import { zTextFieldInput } from "~/schemas/fields/textField";
 import NumberField from "~/components/fields/NumberField";
 import TextField from "~/components/fields/TextField";
 import ExplainerField from "~/components/fields/ExplainerField";
@@ -17,7 +14,8 @@ import {
   getAllFieldsAndAnswers,
   getUpdatableFields,
 } from "~/models/questionnaire.server";
-import { db } from "~/utils/db.server";
+import { zUpdatableFieldInputs } from "~/schemas/fields/updatableField";
+import { upsertAnswers } from "~/models/answer.server";
 
 export const loader = async ({ params, request }: DataFunctionArgs) => {
   const userId = await requireAuthenticatedUser(request);
@@ -36,23 +34,6 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
   const fields = await getUpdatableFields(questionnaireId);
   const formData = await request.formData();
 
-  // build parser
-  const parser = z.object(
-    Object.fromEntries(
-      fields.map((field) => {
-        const type = field.type;
-        switch (type) {
-          case FieldType.NUMBER:
-            return [field.id, zNumberFieldInput(field.params)];
-          case FieldType.TEXT:
-            return [field.id, zTextFieldInput(field.params)];
-          default:
-            return assertUnreachable(type);
-        }
-      })
-    )
-  );
-
   // build data structure
   const rawData = Object.fromEntries(
     fields.map((field): [string, FormDataEntryValue | null] => {
@@ -60,7 +41,8 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
     })
   );
 
-  const result = parser.safeParse(rawData);
+  // parse user inputs
+  const result = zUpdatableFieldInputs(fields).safeParse(rawData);
 
   // handle errors
   if (!result.success) {
@@ -69,26 +51,7 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
   }
 
   // store results in db
-  db.$transaction(
-    Object.entries(result.data).map(([fieldId, value]) => {
-      return db.answer.upsert({
-        where: {
-          userId_fieldId: {
-            userId: userId,
-            fieldId: fieldId,
-          },
-        },
-        update: {
-          content: { value: value },
-        },
-        create: {
-          userId: userId,
-          fieldId: fieldId,
-          content: { value: value },
-        },
-      });
-    })
-  );
+  await upsertAnswers(userId, result.data);
 
   return redirect(`results`);
 };
