@@ -82,6 +82,7 @@ export const keepFirstAnswer = <T extends { answers: NumberAnswer[] }>(
 export const parseNumberField = (field: unknown & { params: unknown }) => {
   return zNumberField.merge(zIncludeParams).parse(field);
 };
+export type NumberFieldWithParams = ReturnType<typeof parseNumberField>;
 
 export const parseNumberFieldWithAnswer = (
   field: unknown & { params: unknown }
@@ -92,10 +93,13 @@ export const parseNumberFieldWithAnswer = (
     .merge(zIncludeAnswer(params))
     .parse(field);
 };
+export type NumberFieldWithAnswer = ReturnType<
+  typeof parseNumberFieldWithAnswer
+>;
 
 export const parseNumberFieldWithZeroOrOneAnswers = (
   field: unknown & { params: unknown }
-) => {
+): NumberFieldWithAnswer => {
   const params = zNumberFieldParams.parse(field.params);
   return zNumberField
     .merge(zIncludeParams)

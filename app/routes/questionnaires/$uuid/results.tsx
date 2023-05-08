@@ -1,4 +1,3 @@
-import { FieldType } from "@prisma/client";
 import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
@@ -9,47 +8,19 @@ import {
   LineElement,
 } from "chart.js";
 import { Radar } from "react-chartjs-2";
-import { z } from "zod";
-import {
-  parseNumberFieldWithAnswer,
-  parseNumberFieldWithZeroOrOneAnswers,
-} from "~/schemas/fields/numberField";
-import { db } from "~/utils/db.server";
+import { getNumberFieldsAndAnswers } from "~/models/questionnaire.server";
 import { requireAuthenticatedUser } from "~/models/session.server";
+import { parseNumberFieldWithAnswer } from "~/schemas/fields/numberField";
+import { zQuestionnaireId } from "~/schemas/questionnaire";
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement);
 
-const getNumericResultsFromQuestionnaire = async (
-  userId: string,
-  questionnaireId: string
-) => {
-  const rawFields = await db.field.findMany({
-    where: { questionnaireId, type: FieldType.NUMBER },
-    select: {
-      id: true,
-      type: true,
-      params: true,
-      answers: {
-        // NOTE: expecting 0 or 1 answers
-        where: { userId },
-        select: { content: true },
-      },
-    },
-  });
-
-  const parsedFields = rawFields.map((field) =>
-    parseNumberFieldWithZeroOrOneAnswers(field)
-  );
-
-  return parsedFields;
-};
-
 export const loader = async ({ params, request }: DataFunctionArgs) => {
   const userId = await requireAuthenticatedUser(request);
-  const questionnaireId = z.string().uuid().parse(params.uuid);
+  const questionnaireId = zQuestionnaireId.parse(params.uuid);
 
   return json({
-    fields: await getNumericResultsFromQuestionnaire(userId, questionnaireId),
+    fields: await getNumberFieldsAndAnswers(userId, questionnaireId),
   });
 };
 

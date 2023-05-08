@@ -39,3 +39,4 @@ export const zIncludeParams = z.object({
 export const parseExplainerField = (field: unknown & { params: unknown }) => {
   return zExplainerField.merge(zIncludeParams).parse(field);
 };
+export type ExplainerFieldWithParams = ReturnType<typeof parseExplainerField>;

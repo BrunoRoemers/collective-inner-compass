@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { db } from "~/utils/db.server";
 import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
@@ -11,71 +10,30 @@ import { zTextFieldInput } from "~/schemas/fields/textField";
 import NumberField from "~/components/fields/NumberField";
 import TextField from "~/components/fields/TextField";
 import ExplainerField from "~/components/fields/ExplainerField";
-import {
-  parseAnyFieldWithZeroOrOneAnswers,
-  zUpdatableField,
-} from "~/schemas/fields/anyField";
 import { zErrors } from "~/schemas/errors";
 import { requireAuthenticatedUser } from "~/models/session.server";
-
-const getFieldsAndAnswersOfQuestionnaire = async (
-  userId: string,
-  questionnaireId: string
-) => {
-  const rawFields = await db.field.findMany({
-    where: { questionnaireId },
-    select: {
-      id: true,
-      type: true,
-      params: true,
-      answers: {
-        // NOTE: expecting 0 or 1 answers
-        where: { userId },
-        select: { content: true },
-      },
-    },
-    orderBy: {
-      order: "asc",
-    },
-  });
-
-  const parsedFields = rawFields.map((field) =>
-    parseAnyFieldWithZeroOrOneAnswers(field)
-  );
-
-  return parsedFields;
-};
+import { zQuestionnaireId } from "~/schemas/questionnaire";
+import {
+  getAllFieldsAndAnswers,
+  getUpdatableFields,
+} from "~/models/questionnaire.server";
+import { db } from "~/utils/db.server";
 
 export const loader = async ({ params, request }: DataFunctionArgs) => {
   const userId = await requireAuthenticatedUser(request);
-  const questionnaireId = z.string().uuid().parse(params.uuid);
+  const questionnaireId = zQuestionnaireId.parse(params.uuid);
 
   return json({
     uuid: questionnaireId,
-    fields: await getFieldsAndAnswersOfQuestionnaire(userId, questionnaireId),
+    fields: await getAllFieldsAndAnswers(userId, questionnaireId),
   });
-};
-
-const getUpdatableFields = async (userId: string, questionnaireId: string) => {
-  const rawFields = await db.field.findMany({
-    where: { questionnaireId, type: { notIn: [FieldType.EXPLAINER] } },
-    select: {
-      id: true,
-      type: true,
-      params: true,
-    },
-  });
-
-  const parsedFields = z.array(zUpdatableField).parse(rawFields);
-
-  return parsedFields;
 };
 
 export const action = async ({ params, request }: DataFunctionArgs) => {
   // inputs
   const userId = await requireAuthenticatedUser(request);
-  const questionnaireId = z.string().uuid().parse(params.uuid);
-  const fields = await getUpdatableFields(userId, questionnaireId);
+  const questionnaireId = zQuestionnaireId.parse(params.uuid);
+  const fields = await getUpdatableFields(questionnaireId);
   const formData = await request.formData();
 
   // build parser

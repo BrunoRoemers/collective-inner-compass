@@ -1,14 +1,17 @@
 import { z } from "zod";
+import type { NumberFieldWithAnswer } from "./numberField";
 import {
   zIncludeParams as includeNumberParams,
   zNumberField,
   parseNumberFieldWithZeroOrOneAnswers,
 } from "./numberField";
+import type { TextFieldWithAnswer } from "./textField";
 import {
   zIncludeParams as includeTextParams,
   parseTextFieldWithZeroOrOneAnswers,
   zTextField,
 } from "./textField";
+import type { ExplainerFieldWithParams } from "./explainerField";
 import {
   zExplainerField,
   zIncludeParams as includeExplainerParams,
@@ -25,16 +28,14 @@ export const zAnyField = z.discriminatedUnion("type", [
 
 export type AnyField = z.infer<typeof zAnyField>;
 
-export const zUpdatableField = z.discriminatedUnion("type", [
-  zNumberField.merge(includeNumberParams),
-  zTextField.merge(includeTextParams),
-]);
-
-export type UpdatableField = z.infer<typeof zUpdatableField>;
+export type AnyFieldWithAnswer =
+  | NumberFieldWithAnswer
+  | TextFieldWithAnswer
+  | ExplainerFieldWithParams;
 
 export const parseAnyFieldWithZeroOrOneAnswers = (
   field: unknown & { type: FieldType; params: unknown }
-) => {
+): AnyFieldWithAnswer => {
   switch (field.type) {
     case FieldType.NUMBER:
       return parseNumberFieldWithZeroOrOneAnswers(field);

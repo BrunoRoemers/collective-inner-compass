@@ -1,13 +1,13 @@
 import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
-import { db } from "~/utils/db.server";
+import { getAllQuestionnaires } from "~/models/questionnaire.server";
 import { requireAuthenticatedUser } from "~/models/session.server";
 
 export const loader = async ({ request }: DataFunctionArgs) => {
   await requireAuthenticatedUser(request);
   return json({
-    questionnaires: await db.questionnaire.findMany(),
+    questionnaires: await getAllQuestionnaires(),
   });
 };
 
