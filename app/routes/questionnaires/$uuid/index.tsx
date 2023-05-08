@@ -16,7 +16,7 @@ import {
   zUpdatableField,
 } from "~/schemas/fields/anyField";
 import { zErrors } from "~/schemas/errors";
-import { requireUserId } from "~/models/session.server";
+import { requireAuthenticatedUser } from "~/models/session.server";
 
 const getFieldsAndAnswersOfQuestionnaire = async (
   userId: string,
@@ -47,7 +47,7 @@ const getFieldsAndAnswersOfQuestionnaire = async (
 };
 
 export const loader = async ({ params, request }: DataFunctionArgs) => {
-  const userId = await requireUserId(request);
+  const userId = await requireAuthenticatedUser(request);
   const questionnaireId = z.string().uuid().parse(params.uuid);
 
   return json({
@@ -73,7 +73,7 @@ const getUpdatableFields = async (userId: string, questionnaireId: string) => {
 
 export const action = async ({ params, request }: DataFunctionArgs) => {
   // inputs
-  const userId = await requireUserId(request);
+  const userId = await requireAuthenticatedUser(request);
   const questionnaireId = z.string().uuid().parse(params.uuid);
   const fields = await getUpdatableFields(userId, questionnaireId);
   const formData = await request.formData();

@@ -2,44 +2,26 @@ import { z } from "zod";
 import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
-import { db } from "~/utils/db.server";
-import { getUserId } from "~/models/session.server";
+import { getIdOfAuthenticatedUser } from "~/models/session.server";
+import { zUser } from "~/schemas/user";
+import { getUserById } from "~/models/user.server";
 
 const response = z.object({
-  user: z.union([
-    z.null(),
-    z.object({
-      id: z.string().uuid(),
-      name: z.string(),
-      email: z.string().email(),
-    }),
-  ]),
+  user: z.union([z.null(), zUser]),
 });
 
 type Response = z.infer<typeof response>;
 
 export const loader = async ({ request }: DataFunctionArgs) => {
-  const userId = await getUserId(request);
+  const userId = await getIdOfAuthenticatedUser(request);
 
   if (userId === undefined) {
-    return json<Response>({
-      user: null,
-    });
+    return json<Response>({ user: null });
   }
 
-  const user = await db.user.findUniqueOrThrow({
-    where: {
-      id: userId,
-    },
-  });
+  const user = await getUserById(userId);
 
-  return json<Response>({
-    user: {
-      id: user.id,
-      name: user.name ?? "Anon",
-      email: user.email,
-    },
-  });
+  return json<Response>({ user: user });
 };
 
 export default function Index() {
@@ -58,7 +40,7 @@ export default function Index() {
         (
         {user === null
           ? "not logged in"
-          : `logged in as: ${user.name} (${user.email})`}
+          : `logged in as: ${user.name ?? "Anon"} (${user.email})`}
         )
       </div>
     </div>

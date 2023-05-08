@@ -1,7 +1,7 @@
-import { z } from "zod";
 import type { Session } from "@remix-run/node";
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import type { User } from "@prisma/client";
+import type { UserId } from "~/schemas/user";
+import { zUserId } from "~/schemas/user";
 
 const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {
@@ -42,25 +42,27 @@ const getSession = (
   return storage.getSession(request.headers.get("Cookie"));
 };
 
-export const getUserId = async (
+export const getIdOfAuthenticatedUser = async (
   request: Request
-): Promise<string | undefined> => {
+): Promise<UserId | undefined> => {
   const session = await getSession(request);
   const userId = session.get("userId");
-  return z.string().uuid().optional().parse(userId);
+  return zUserId.optional().parse(userId);
 };
 
-export const requireUserId = async (request: Request): Promise<string> => {
-  const userId = await getUserId(request);
+export const requireAuthenticatedUser = async (
+  request: Request
+): Promise<UserId> => {
+  const userId = await getIdOfAuthenticatedUser(request);
   if (userId === undefined) {
     throw redirect(`/login`);
   }
   return userId;
 };
 
-export const createSession = async (user: User) => {
+export const createSession = async (userId: UserId) => {
   const session = await storage.getSession();
-  session.set("userId", user.id);
+  session.set("userId", userId);
   // TODO dynamic redirect
   return redirect("/", {
     headers: {

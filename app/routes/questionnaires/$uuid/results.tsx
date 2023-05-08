@@ -15,7 +15,7 @@ import {
   parseNumberFieldWithZeroOrOneAnswers,
 } from "~/schemas/fields/numberField";
 import { db } from "~/utils/db.server";
-import { requireUserId } from "~/models/session.server";
+import { requireAuthenticatedUser } from "~/models/session.server";
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement);
 
@@ -45,7 +45,7 @@ const getNumericResultsFromQuestionnaire = async (
 };
 
 export const loader = async ({ params, request }: DataFunctionArgs) => {
-  const userId = await requireUserId(request);
+  const userId = await requireAuthenticatedUser(request);
   const questionnaireId = z.string().uuid().parse(params.uuid);
 
   return json({

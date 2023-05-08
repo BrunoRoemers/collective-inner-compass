@@ -1,32 +1,39 @@
 import { webcrypto } from "node:crypto";
 import bcrypt from "bcryptjs";
-import type { Token, User } from "@prisma/client";
 import config from "~/config";
 import { db } from "~/utils/db.server";
-import { getUserById } from "./user.server";
+import type { Secret, Token, TokenId, TokenIdAndSecret } from "~/schemas/token";
+import { zToken, zSecret, zTokenId } from "~/schemas/token";
+import type { UserId } from "~/schemas/user";
 
-const generateRandomSecret = async (): Promise<string> => {
+const generateRandomSecret = async (): Promise<Secret> => {
   const byteArray = webcrypto.getRandomValues(
     new Uint8Array(config.tokenSizeInBytes)
   );
-  return Buffer.from(byteArray).toString("base64url");
+  return zSecret.parse(Buffer.from(byteArray).toString("base64url"));
 };
 
-export const createToken = async (user: User): Promise<Token> => {
+export const createToken = async (
+  userId: UserId
+): Promise<TokenIdAndSecret> => {
   const secret = await generateRandomSecret();
   const tokenHash = await bcrypt.hash(secret, config.hashSaltLength);
-  return db.token.create({
+  const token = await db.token.create({
     data: {
-      userId: user.id,
+      userId: userId,
       hash: tokenHash,
     },
   });
+  return {
+    tokenId: zTokenId.parse(token.id),
+    secret: secret,
+  };
 };
 
-export const consumeExistingTokens = async (user: User): Promise<void> => {
+export const consumeExistingTokens = async (userId: UserId): Promise<void> => {
   await db.token.updateMany({
     where: {
-      userId: user.id,
+      userId: userId,
     },
     data: {
       consumedAt: new Date(),
@@ -34,10 +41,10 @@ export const consumeExistingTokens = async (user: User): Promise<void> => {
   });
 };
 
-export const consumeToken = async (token: Token): Promise<void> => {
+export const consumeToken = async (tokenId: TokenId): Promise<void> => {
   await db.token.update({
     where: {
-      id: token.id,
+      id: tokenId,
     },
     data: {
       consumedAt: new Date(),
@@ -45,12 +52,13 @@ export const consumeToken = async (token: Token): Promise<void> => {
   });
 };
 
-export const getToken = async (tokenId: string): Promise<Token> => {
-  return await db.token.findUniqueOrThrow({
+export const getToken = async (tokenId: TokenId): Promise<Token> => {
+  const rawToken = await db.token.findUniqueOrThrow({
     where: {
       id: tokenId,
     },
   });
+  return zToken.parse(rawToken);
 };
 
 const isTokenConsumed = async (token: Token): Promise<boolean> => {
@@ -69,14 +77,14 @@ const isTokenCounterfeit = async (token: Token, secret: string) => {
 
 export const consumeTokenForAccess = async (
   token: Token,
-  secret: string
-): Promise<User> => {
+  secret: Secret
+): Promise<UserId> => {
   if (await isTokenConsumed(token)) {
     throw new Error(`token ${token.id} is consumed`);
   }
 
   if (await isTokenExpired(token)) {
-    await consumeToken(token);
+    await consumeToken(token.id);
     throw new Error(`token ${token.id} is expired`);
   }
 
@@ -84,7 +92,7 @@ export const consumeTokenForAccess = async (
     throw new Error(`token ${token.id} is counterfeit`);
   }
 
-  await consumeToken(token);
+  await consumeToken(token.id);
 
-  return getUserById(token.userId);
+  return token.userId;
 };

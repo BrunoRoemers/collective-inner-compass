@@ -1,11 +1,12 @@
-import type { User } from "@prisma/client";
+import type { User, UserEmail, UserId } from "~/schemas/user";
+import { zUser } from "~/schemas/user";
 import { db } from "~/utils/db.server";
 
 export const getOrCreateUser = async (
-  email: string,
+  email: UserEmail,
   name: string | undefined = undefined
 ): Promise<User> => {
-  return db.user.upsert({
+  const rawUser = await db.user.upsert({
     where: {
       email,
     },
@@ -15,12 +16,21 @@ export const getOrCreateUser = async (
       email,
     },
   });
+
+  return zUser.parse(rawUser);
 };
 
-export const getUserById = (userId: string) => {
-  return db.user.findUniqueOrThrow({
+export const getUserById = async (userId: UserId): Promise<User> => {
+  const rawUser = await db.user.findUniqueOrThrow({
     where: {
       id: userId,
     },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
   });
+
+  return zUser.parse(rawUser);
 };

@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 export interface FieldProps<Params, Input> {
   id: string;
   params: Params;

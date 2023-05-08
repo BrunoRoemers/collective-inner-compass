@@ -6,6 +6,8 @@ import FormRow from "~/components/FormRow";
 import { zErrors } from "~/schemas/errors";
 import { getOrCreateUser } from "~/models/user.server";
 import { createToken, consumeExistingTokens } from "~/models/token.server";
+import { zUserEmail } from "~/schemas/user";
+import { zTokenIdAndSecret } from "~/schemas/token";
 
 export const action = async ({ request }: DataFunctionArgs) => {
   const formData = await request.formData();
@@ -14,7 +16,7 @@ export const action = async ({ request }: DataFunctionArgs) => {
   };
 
   const formParser = z.object({
-    email: z.string().email(),
+    email: zUserEmail,
   });
 
   const result = formParser.safeParse(rawData);
@@ -29,14 +31,14 @@ export const action = async ({ request }: DataFunctionArgs) => {
 
   // TODO rate-limit creation of tokens
 
-  await consumeExistingTokens(user);
-  const token = await createToken(user);
+  await consumeExistingTokens(user.id);
+  const { tokenId, secret } = await createToken(user.id);
 
   // TEMP as soon as sending emails is implemented, DO NOT RETURN THE TOKEN TO THE CLIENT
   return json({
     doNotSendMeToTheClient: {
-      tokenId: token.id,
-      tokenValue: token,
+      tokenId,
+      secret,
     },
   });
 };
@@ -46,10 +48,7 @@ export default () => {
     .union([
       zErrors,
       z.object({
-        doNotSendMeToTheClient: z.object({
-          tokenId: z.string(),
-          tokenValue: z.string(),
-        }),
+        doNotSendMeToTheClient: zTokenIdAndSecret,
       }),
       z.undefined(),
     ])
@@ -70,7 +69,7 @@ export default () => {
     );
   }
 
-  const link = `/tokens/${actionData.doNotSendMeToTheClient.tokenId}?t=${actionData.doNotSendMeToTheClient.tokenValue}`;
+  const link = `/tokens/${actionData.doNotSendMeToTheClient.tokenId}?t=${actionData.doNotSendMeToTheClient.secret}`;
 
   return (
     <div className="p-2">
