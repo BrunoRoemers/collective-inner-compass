@@ -8,8 +8,24 @@ import { getOrCreateUser } from "~/models/user.server";
 import { createToken, consumeExistingTokens } from "~/models/token.server";
 import { zUserEmail } from "~/schemas/user";
 import { zTokenIdAndSecret } from "~/schemas/token";
+import { zRedirect } from "~/schemas/url";
+import getSearchParam from "~/utils/getSearchParam";
+import config from "~/config";
+
+const zResponse = z.union([
+  zErrors,
+  z.object({
+    doNotSendMeToTheClient: zTokenIdAndSecret.extend({ redirectTo: zRedirect }),
+  }),
+  z.undefined(),
+]);
+type Response = z.infer<typeof zResponse>;
 
 export const action = async ({ request }: DataFunctionArgs) => {
+  const redirectTo = zRedirect.parse(
+    getSearchParam(request.url, config.auth.urlParams.redirect) ?? "/"
+  );
+
   const formData = await request.formData();
   const rawData = {
     email: formData.get("email"),
@@ -24,7 +40,7 @@ export const action = async ({ request }: DataFunctionArgs) => {
   // handle errors
   if (!result.success) {
     const errors = result.error.flatten();
-    return json(errors, { status: 400 });
+    return json<Response>(errors, { status: 400 });
   }
 
   const user = await getOrCreateUser(result.data.email);
@@ -35,24 +51,17 @@ export const action = async ({ request }: DataFunctionArgs) => {
   const { tokenId, secret } = await createToken(user.id);
 
   // TEMP as soon as sending emails is implemented, DO NOT RETURN THE TOKEN TO THE CLIENT
-  return json({
+  return json<Response>({
     doNotSendMeToTheClient: {
       tokenId,
       secret,
+      redirectTo,
     },
   });
 };
 
 export default () => {
-  const actionData = z
-    .union([
-      zErrors,
-      z.object({
-        doNotSendMeToTheClient: zTokenIdAndSecret,
-      }),
-      z.undefined(),
-    ])
-    .parse(useActionData());
+  const actionData = zResponse.parse(useActionData());
 
   if (actionData === undefined || "fieldErrors" in actionData) {
     return (
@@ -69,7 +78,7 @@ export default () => {
     );
   }
 
-  const link = `/tokens/${actionData.doNotSendMeToTheClient.tokenId}?t=${actionData.doNotSendMeToTheClient.secret}`;
+  const link = `/tokens/${actionData.doNotSendMeToTheClient.tokenId}?t=${actionData.doNotSendMeToTheClient.secret}&r=${actionData.doNotSendMeToTheClient.redirectTo}`;
 
   return (
     <div className="p-2">

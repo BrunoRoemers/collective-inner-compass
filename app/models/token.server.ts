@@ -8,7 +8,7 @@ import type { UserId } from "~/schemas/user";
 
 const generateRandomSecret = async (): Promise<Secret> => {
   const byteArray = webcrypto.getRandomValues(
-    new Uint8Array(config.tokenSizeInBytes)
+    new Uint8Array(config.auth.tokenSizeInBytes)
   );
   return zSecret.parse(Buffer.from(byteArray).toString("base64url"));
 };
@@ -17,7 +17,7 @@ export const createToken = async (
   userId: UserId
 ): Promise<TokenIdAndSecret> => {
   const secret = await generateRandomSecret();
-  const tokenHash = await bcrypt.hash(secret, config.hashSaltLength);
+  const tokenHash = await bcrypt.hash(secret, config.auth.hashSaltLength);
   const token = await db.token.create({
     data: {
       userId: userId,
@@ -68,7 +68,9 @@ const isTokenConsumed = async (token: Token): Promise<boolean> => {
 const isTokenExpired = async (token: Token): Promise<boolean> => {
   const now = new Date();
   const timeDifferenceInMs = now.getTime() - token.createdAt.getTime();
-  return timeDifferenceInMs < 0 || timeDifferenceInMs > config.tokenMaxAgeInMs;
+  return (
+    timeDifferenceInMs < 0 || timeDifferenceInMs > config.auth.tokenMaxAgeInMs
+  );
 };
 
 const isTokenCounterfeit = async (token: Token, secret: string) => {

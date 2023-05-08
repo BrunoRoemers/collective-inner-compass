@@ -20,7 +20,7 @@ export type Token = z.infer<typeof zToken>;
 export const zSecret = z
   .string()
   // base64url encoding outputs 4 bytes for every 3 bytes of input (and does not pad the result to get a multiple of four)
-  .length(Math.ceil((config.tokenSizeInBytes / 3) * 4))
+  .length(Math.ceil((config.auth.tokenSizeInBytes / 3) * 4))
   .brand<"Secret">();
 export type Secret = z.infer<typeof zSecret>;
 

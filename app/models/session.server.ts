@@ -1,5 +1,8 @@
 import type { Session } from "@remix-run/node";
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
+import config from "~/config";
+import type { Redirect } from "~/schemas/url";
+import { zRedirect } from "~/schemas/url";
 import type { UserId } from "~/schemas/user";
 import { zUserId } from "~/schemas/user";
 
@@ -51,20 +54,26 @@ export const getIdOfAuthenticatedUser = async (
 };
 
 export const requireAuthenticatedUser = async (
-  request: Request
+  request: Request,
+  redirectTo: Redirect = zRedirect.parse(new URL(request.url).pathname)
 ): Promise<UserId> => {
   const userId = await getIdOfAuthenticatedUser(request);
   if (userId === undefined) {
-    throw redirect(`/login`);
+    const searchParams = new URLSearchParams({
+      [config.auth.urlParams.redirect]: redirectTo,
+    });
+    throw redirect(`/login?${searchParams}`);
   }
   return userId;
 };
 
-export const createSession = async (userId: UserId) => {
+export const createSessionAndRedirect = async (
+  userId: UserId,
+  redirectTo: Redirect
+) => {
   const session = await storage.getSession();
   session.set("userId", userId);
-  // TODO dynamic redirect
-  return redirect("/", {
+  return redirect(redirectTo, {
     headers: {
       "Set-Cookie": await storage.commitSession(session),
     },
