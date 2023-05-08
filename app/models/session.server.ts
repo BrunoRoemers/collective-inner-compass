@@ -79,3 +79,12 @@ export const createSessionAndRedirect = async (
     },
   });
 };
+
+export const destroySessionAndRedirect = async (request: Request) => {
+  const session = await getSession(request);
+  return redirect("/login", {
+    headers: {
+      "Set-Cookie": await storage.destroySession(session),
+    },
+  });
+};
