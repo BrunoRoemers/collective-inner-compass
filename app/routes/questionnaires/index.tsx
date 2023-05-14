@@ -21,9 +21,13 @@ export default () => {
             <Link to={q.id} className="hover:underline">
               {q.name}
             </Link>{" "}
-            (
+            (<span>results:</span>{" "}
             <Link to={`${q.id}/group-results`} className="hover:underline">
-              group results
+              separate
+            </Link>
+            ,{" "}
+            <Link to={`${q.id}/group-results-2`} className="hover:underline">
+              aggregated
             </Link>
             )
           </li>
