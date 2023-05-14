@@ -2,6 +2,7 @@ import { FieldType } from "@prisma/client";
 import { z } from "zod";
 import { zField } from "./field";
 import type { NumberAnswer } from "../answers/numberAnswer";
+import { zIncludeUserId } from "../answers/numberAnswer";
 import { zNumberAnswer } from "../answers/numberAnswer";
 
 /////////////////////
@@ -49,6 +50,11 @@ export const zIncludeParams = z.object({
 export const zIncludeAnswers = (params: NumberFieldParams) =>
   z.object({
     answers: z.array(zNumberAnswer(params)),
+  });
+
+export const zIncludeAnswersWithUserIds = (params: NumberFieldParams) =>
+  z.object({
+    answers: z.array(zNumberAnswer(params).merge(zIncludeUserId(params))),
   });
 
 export const zIncludeZeroOrOneAnswers = (params: NumberFieldParams) =>
@@ -107,3 +113,16 @@ export const parseNumberFieldWithZeroOrOneAnswers = (
     .transform(keepFirstAnswer)
     .parse(field);
 };
+
+export const parseNumberFieldWithZeroOrManyAnswers = (
+  field: unknown & { params: unknown }
+) => {
+  const params = zNumberFieldParams.parse(field.params);
+  return zNumberField
+    .merge(zIncludeParams)
+    .merge(zIncludeAnswersWithUserIds(params))
+    .parse(field);
+};
+export type NumberFieldWithAnswers = ReturnType<
+  typeof parseNumberFieldWithZeroOrManyAnswers
+>;

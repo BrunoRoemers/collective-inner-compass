@@ -8,7 +8,7 @@ import {
   LineElement,
 } from "chart.js";
 import { Radar } from "react-chartjs-2";
-import { getNumberFieldsAndAnswers } from "~/models/questionnaire.server";
+import { getNumberFieldsAndAnswersByUserAndQuestionnaire } from "~/models/questionnaire.server";
 import { requireAuthenticatedUser } from "~/models/session.server";
 import { parseNumberFieldWithAnswer } from "~/schemas/fields/numberField";
 import { zQuestionnaireId } from "~/schemas/questionnaire";
@@ -20,7 +20,10 @@ export const loader = async ({ params, request }: DataFunctionArgs) => {
   const questionnaireId = zQuestionnaireId.parse(params.uuid);
 
   return json({
-    fields: await getNumberFieldsAndAnswers(userId, questionnaireId),
+    fields: await getNumberFieldsAndAnswersByUserAndQuestionnaire(
+      userId,
+      questionnaireId
+    ),
   });
 };
 

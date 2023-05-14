@@ -2,7 +2,11 @@ import { FieldType } from "@prisma/client";
 import { z } from "zod";
 import type { AnyFieldWithAnswer } from "~/schemas/fields/anyField";
 import { parseAnyFieldWithZeroOrOneAnswers } from "~/schemas/fields/anyField";
-import type { NumberFieldWithAnswer } from "~/schemas/fields/numberField";
+import type {
+  NumberFieldWithAnswer,
+  NumberFieldWithAnswers,
+} from "~/schemas/fields/numberField";
+import { parseNumberFieldWithZeroOrManyAnswers } from "~/schemas/fields/numberField";
 import { parseNumberFieldWithZeroOrOneAnswers } from "~/schemas/fields/numberField";
 import type { UpdatableField } from "~/schemas/fields/updatableField";
 import { zUpdatableField } from "~/schemas/fields/updatableField";
@@ -62,7 +66,7 @@ export const getAllFieldsAndAnswers = async (
   return parsedFields;
 };
 
-export const getNumberFieldsAndAnswers = async (
+export const getNumberFieldsAndAnswersByUserAndQuestionnaire = async (
   userId: UserId,
   questionnaireId: QuestionnaireId
 ): Promise<NumberFieldWithAnswer[]> => {
@@ -82,6 +86,32 @@ export const getNumberFieldsAndAnswers = async (
 
   const parsedFields = rawFields.map((field) =>
     parseNumberFieldWithZeroOrOneAnswers(field)
+  );
+
+  return parsedFields;
+};
+
+export const getNumberFieldsAndAnswersByQuestionnaire = async (
+  questionnaireId: QuestionnaireId
+): Promise<NumberFieldWithAnswers[]> => {
+  const rawFields = await db.field.findMany({
+    where: { questionnaireId, type: FieldType.NUMBER },
+    select: {
+      id: true,
+      type: true,
+      params: true,
+      answers: {
+        // NOTE: expecting 0 or many answers (one for each user)
+        select: {
+          content: true,
+          userId: true,
+        },
+      },
+    },
+  });
+
+  const parsedFields = rawFields.map((field) =>
+    parseNumberFieldWithZeroOrManyAnswers(field)
   );
 
   return parsedFields;

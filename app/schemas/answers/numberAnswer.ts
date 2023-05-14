@@ -1,5 +1,10 @@
 import { z } from "zod";
 import type { NumberFieldParams } from "../fields/numberField";
+import { zUserId } from "../user";
+
+/////////////////////
+// Base Definition //
+/////////////////////
 
 export const zNumberAnswer = (params: NumberFieldParams) =>
   z.object({
@@ -9,3 +14,12 @@ export const zNumberAnswer = (params: NumberFieldParams) =>
   });
 
 export type NumberAnswer = z.infer<ReturnType<typeof zNumberAnswer>>;
+
+///////////////////
+// Merge Options //
+///////////////////
+
+export const zIncludeUserId = (params: NumberFieldParams) =>
+  z.object({
+    userId: zUserId,
+  });
