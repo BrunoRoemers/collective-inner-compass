@@ -38,7 +38,7 @@ export default () => {
     datasets: [
       {
         label: "Results",
-        data: fields.map((field) => field.answer?.content.value ?? 0),
+        data: fields.map((field) => field.answer?.content.value),
         fill: true,
         backgroundColor: "rgba(255, 99, 132, 0.2)",
         borderColor: "rgb(255, 99, 132)",
