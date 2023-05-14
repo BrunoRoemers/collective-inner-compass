@@ -1,5 +1,6 @@
 import type { DataFunctionArgs } from "@remix-run/node";
 import { Form, Outlet, useLoaderData } from "@remix-run/react";
+import Header from "~/components/Header";
 import { requireAuthenticatedUser } from "~/models/session.server";
 import { getUserById } from "~/models/user.server";
 import { zUser } from "~/schemas/user";
@@ -14,16 +15,7 @@ export default () => {
 
   return (
     <div>
-      <header className="bg-blue-300">
-        You're logged in as: <span className="font-bold">{user.email}</span>{" "}
-        <Form action="/logout" method="post" className="inline-block">
-          (
-          <button type="submit" className="button hover:underline">
-            Logout
-          </button>
-          )
-        </Form>
-      </header>
+      <Header user={user} />
       <Outlet />
     </div>
   );

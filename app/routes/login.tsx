@@ -1,16 +1,17 @@
 import { z } from "zod";
 import type { DataFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Form, useActionData } from "@remix-run/react";
+import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import FormRow from "~/components/FormRow";
 import { zErrors } from "~/schemas/errors";
-import { getOrCreateUser } from "~/models/user.server";
+import { getOrCreateUser, getUserById } from "~/models/user.server";
 import { createToken, consumeExistingTokens } from "~/models/token.server";
-import { zUserEmail } from "~/schemas/user";
+import { zUser, zUserEmail } from "~/schemas/user";
 import { zBaseUrl, zRedirect } from "~/schemas/url";
 import getSearchParam from "~/utils/getSearchParam";
 import config from "~/config";
 import { sendMagicLinkEmail } from "~/models/email.server";
+import { getIdOfAuthenticatedUser } from "~/models/session.server";
 
 const zResponse = z.union([
   zErrors,
@@ -18,6 +19,14 @@ const zResponse = z.union([
   z.object({ success: z.literal(true) }),
 ]);
 type Response = z.infer<typeof zResponse>;
+
+export const loader = async ({ request }: DataFunctionArgs) => {
+  const userId = await getIdOfAuthenticatedUser(request);
+  if (userId === undefined) {
+    return null;
+  }
+  return getUserById(userId);
+};
 
 export const action = async ({ request }: DataFunctionArgs) => {
   const baseUrl = zBaseUrl.parse(request.url);
@@ -64,7 +73,27 @@ export const action = async ({ request }: DataFunctionArgs) => {
 };
 
 export default () => {
+  const user = zUser.nullable().parse(useLoaderData());
   const actionData = zResponse.parse(useActionData());
+
+  if (user !== null) {
+    return (
+      <div className="p-2">
+        You're already logged in as:{" "}
+        <span className="font-bold">{user.email}</span>{" "}
+        <Form action="/logout" method="post" className="inline-block">
+          (
+          <button type="submit" className="button hover:underline">
+            Logout
+          </button>
+          )
+        </Form>
+        <Link to="/" className="hover:underline block">
+          Back to the homepage
+        </Link>
+      </div>
+    );
+  }
 
   if (actionData && "success" in actionData) {
     return (

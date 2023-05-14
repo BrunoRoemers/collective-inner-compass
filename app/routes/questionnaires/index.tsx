@@ -14,14 +14,16 @@ export const loader = async ({ request }: DataFunctionArgs) => {
 export default () => {
   const { questionnaires } = useLoaderData<typeof loader>();
   return (
-    <ul>
-      {questionnaires.map((q) => (
-        <li key={q.id}>
-          <Link to={q.id} className="hover:underline block">
-            {q.name}
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <div className="p-2">
+      <ul>
+        {questionnaires.map((q) => (
+          <li key={q.id}>
+            <Link to={q.id} className="hover:underline block">
+              {q.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
