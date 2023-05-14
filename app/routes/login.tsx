@@ -12,7 +12,11 @@ import getSearchParam from "~/utils/getSearchParam";
 import config from "~/config";
 import { sendMagicLinkEmail } from "~/models/email.server";
 
-const zResponse = z.union([zErrors, z.undefined(), z.null()]);
+const zResponse = z.union([
+  zErrors,
+  z.undefined(),
+  z.object({ success: z.literal(true) }),
+]);
 type Response = z.infer<typeof zResponse>;
 
 export const action = async ({ request }: DataFunctionArgs) => {
@@ -45,26 +49,30 @@ export const action = async ({ request }: DataFunctionArgs) => {
   await consumeExistingTokens(user.id);
   const { tokenId, secret } = await createToken(user.id);
 
-  try {
-    const status = await sendMagicLinkEmail(
-      user,
-      baseUrl,
-      tokenId,
-      secret,
-      redirectTo
-    );
-    // TODO
-    console.log("STATUS", status);
-    return null;
-  } catch (e) {
-    console.error(e);
-    // TODO
-    return null;
+  const success = await sendMagicLinkEmail(
+    user,
+    baseUrl,
+    tokenId,
+    secret,
+    redirectTo
+  );
+  if (success) {
+    return json<Response>({ success: true }, 200);
+  } else {
+    throw new Error("failed to send email");
   }
 };
 
 export default () => {
   const actionData = zResponse.parse(useActionData());
+
+  if (actionData && "success" in actionData) {
+    return (
+      <div className="p-2">
+        A login link has been sent and will arrive in your mailbox shortly.
+      </div>
+    );
+  }
 
   return (
     <div className="p-2">
@@ -78,24 +86,4 @@ export default () => {
       </Form>
     </div>
   );
-
-  // TODO clean up
-  // const link = `/tokens/${actionData.doNotSendMeToTheClient.tokenId}?t=${actionData.doNotSendMeToTheClient.secret}&r=${actionData.doNotSendMeToTheClient.redirectTo}`;
-
-  // return (
-  //   <div className="p-2">
-  //     <h1>Welcome!</h1>
-  //     <p>We've sent a magic link to your mailbox.</p>
-  //     <div className="bg-red-400 p-2">
-  //       <p className="font-bold">
-  //         Warning: email functionality not yet implemented!
-  //       </p>
-  //       <p>
-  //         You can find the single-use login link below. Consider your account
-  //         accessible by anyone on the internet!
-  //       </p>
-  //       <a href={link}>{link}</a>
-  //     </div>
-  //   </div>
-  // );
 };

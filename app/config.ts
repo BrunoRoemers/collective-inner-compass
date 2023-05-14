@@ -8,8 +8,16 @@ interface AuthConfig {
   };
 }
 
+interface EmailConfig {
+  defaultFrom: {
+    name: string;
+    email: string;
+  };
+}
+
 interface Config {
   auth: AuthConfig;
+  email: EmailConfig;
 }
 
 const config: Config = {
@@ -20,6 +28,12 @@ const config: Config = {
     urlParams: {
       secret: "t",
       redirect: "r",
+    },
+  },
+  email: {
+    defaultFrom: {
+      name: "Collective Inner Compass",
+      email: "no-reply@cic.roemers.io",
     },
   },
 };

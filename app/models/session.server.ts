@@ -32,7 +32,7 @@ const storage = createCookieSessionStorage<SessionData, SessionFlashData>({
         : "CIC_session",
     httpOnly: true,
     secure: true,
-    sameSite: "strict",
+    sameSite: "lax", // NOTE: magic links don't work when this is set to "strict"
     path: "/",
     maxAge: 60 * 60 * 24 * 2, // 2 days, in seconds
     secrets: [sessionSecret],

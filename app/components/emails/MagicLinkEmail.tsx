@@ -24,8 +24,6 @@ const MagicLinkEmail = ({
   });
   const link = `${baseUrl}/tokens/${tokenId}?${searchParams}`;
 
-  console.debug(`magic link for ${user.email}: ${link}`);
-
   return (
     <html>
       <head></head>
