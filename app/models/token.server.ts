@@ -13,9 +13,38 @@ const generateRandomSecret = async (): Promise<Secret> => {
   return zSecret.parse(Buffer.from(byteArray).toString("base64url"));
 };
 
+const enforceTokenCreationRateLimit = async (userId: UserId): Promise<void> => {
+  const latestToken = await getLatestTokenOfUser(userId);
+  if (!latestToken) {
+    return;
+  }
+
+  const now = new Date();
+  const timeDifferenceInMs = now.getTime() - latestToken.createdAt.getTime();
+  if (timeDifferenceInMs < config.auth.tokenCreationDeltaInMs) {
+    throw new Error("token creation rate limited");
+  }
+};
+
+export const getLatestTokenOfUser = async (
+  userId: UserId
+): Promise<Token | null> => {
+  const rawToken = await db.token.findFirst({
+    where: {
+      userId: userId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return zToken.nullable().parse(rawToken);
+};
+
 export const createToken = async (
   userId: UserId
 ): Promise<TokenIdAndSecret> => {
+  await enforceTokenCreationRateLimit(userId);
   const secret = await generateRandomSecret();
   const tokenHash = await bcrypt.hash(secret, config.auth.hashSaltLength);
   const token = await db.token.create({

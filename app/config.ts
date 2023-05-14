@@ -1,5 +1,6 @@
 interface AuthConfig {
   tokenMaxAgeInMs: number;
+  tokenCreationDeltaInMs: number;
   tokenSizeInBytes: number;
   hashSaltLength: number;
   urlParams: {
@@ -23,6 +24,7 @@ interface Config {
 const config: Config = {
   auth: {
     tokenMaxAgeInMs: 1000 * 60 * 10,
+    tokenCreationDeltaInMs: 1000 * 5,
     tokenSizeInBytes: 32,
     hashSaltLength: 10,
     urlParams: {

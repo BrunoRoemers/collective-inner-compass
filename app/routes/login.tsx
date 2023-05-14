@@ -53,8 +53,6 @@ export const action = async ({ request }: DataFunctionArgs) => {
 
   const user = await getOrCreateUser(result.data.email);
 
-  // TODO rate-limit creation of tokens
-
   await consumeExistingTokens(user.id);
   const { tokenId, secret } = await createToken(user.id);
 
