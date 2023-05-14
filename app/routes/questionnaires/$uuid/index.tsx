@@ -53,7 +53,7 @@ export const action = async ({ params, request }: DataFunctionArgs) => {
   // store results in db
   await upsertAnswers(userId, result.data);
 
-  return redirect(`results`);
+  return redirect(`my-results`);
 };
 
 export default () => {

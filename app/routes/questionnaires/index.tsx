@@ -18,9 +18,14 @@ export default () => {
       <ul>
         {questionnaires.map((q) => (
           <li key={q.id}>
-            <Link to={q.id} className="hover:underline block">
+            <Link to={q.id} className="hover:underline">
               {q.name}
+            </Link>{" "}
+            (
+            <Link to={`${q.id}/group-results`} className="hover:underline">
+              group results
             </Link>
+            )
           </li>
         ))}
       </ul>
